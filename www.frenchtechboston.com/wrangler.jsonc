@@ -1,0 +1,17 @@
+{
+  // CHAPTER SETUP: Update the "name" below to your chapter's slug (e.g., "french-tech-sf", "french-tech-nyc")
+  "name": "french-tech-boston",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // CHAPTER SETUP: Replace these with your Supabase project credentials
+  // You can find these in your Supabase project dashboard under Settings > API
+  "vars": {
+    "PUBLIC_SUPABASE_URL": "https://your-project.supabase.co",
+    "PUBLIC_SUPABASE_ANON_KEY": "your-supabase-anon-key"
+  }
+
+  // NOTE: Secrets (SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY) must be set in Cloudflare dashboard
+  // Go to: Workers & Pages > your project > Settings > Variables > Add Variable (Encrypt)
+}

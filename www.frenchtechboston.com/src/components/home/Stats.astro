@@ -1,0 +1,25 @@
+---
+import Container from '../common/Container.astro';
+import { STATS } from '../../lib/constants';
+---
+
+<section class="bg-gradient-to-br from-ft-navy via-ft-blue to-ft-navy py-12 sm:py-16 relative overflow-hidden">
+  <!-- Decorative gradient blobs -->
+  <div class="absolute top-0 left-1/4 w-[400px] h-[400px] bg-gradient-to-br from-ft-red/15 to-transparent rounded-full blur-3xl"></div>
+  <div class="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-gradient-to-tr from-ft-blue/30 to-transparent rounded-full blur-3xl"></div>
+
+  <Container class="relative">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+      {STATS.map((stat) => (
+        <div class="backdrop-blur-xl bg-white/90 rounded-2xl p-6 border border-white/50 shadow-xl shadow-black/20 text-center hover:bg-white hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1 transition-all duration-300">
+          <div class="text-4xl sm:text-5xl font-bold text-ft-red mb-2">
+            {stat.value}
+          </div>
+          <div class="text-gray-600 font-medium">
+            {stat.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  </Container>
+</section>

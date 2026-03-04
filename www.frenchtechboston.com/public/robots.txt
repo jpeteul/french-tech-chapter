@@ -1,0 +1,14 @@
+# robots.txt for La French Tech Boston
+# https://frenchtech-boston.com
+
+User-agent: *
+Allow: /
+
+# Disallow admin and member-only areas
+Disallow: /admin/
+Disallow: /members/
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: https://frenchtech-boston.com/sitemap-index.xml

@@ -1,0 +1,136 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+let article: any = null;
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin && slug) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('news')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single();
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    article = data;
+  }
+}
+
+if (!article) {
+  return Astro.redirect('/news');
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+// Simple markdown-like rendering for content
+function renderContent(content: string) {
+  if (!content) return '';
+
+  return content
+    // Headers
+    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold text-ft-black mt-6 mb-3">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-ft-black mt-8 mb-4">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-ft-black mt-8 mb-4">$1</h1>')
+    // Bold and italic
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Links
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-ft-red hover:underline">$1</a>')
+    // Line breaks and paragraphs
+    .split('\n\n')
+    .map(para => para.trim())
+    .filter(para => para.length > 0)
+    .map(para => {
+      if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<ol')) {
+        return para;
+      }
+      return `<p class="mb-4 leading-relaxed">${para.replace(/\n/g, '<br>')}</p>`;
+    })
+    .join('\n');
+}
+---
+
+<PublicLayout title={article.title} description={article.excerpt || ''}>
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <a href="/news" class="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to News
+        </a>
+        <div class="flex items-center gap-3 mb-4">
+          <Badge>{article.category}</Badge>
+          <span class="text-white/70">{formatDate(article.published_at || article.created_at)}</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">{article.title}</h1>
+        {article.author_name && (
+          <p class="text-white/70">By {article.author_name}</p>
+        )}
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl mx-auto">
+        <Card variant="glass" padding="lg">
+          {article.image_url && (
+            <img
+              src={article.image_url}
+              alt={article.title}
+              class="w-full h-64 sm:h-80 object-cover rounded-xl mb-8"
+            />
+          )}
+
+          {article.excerpt && (
+            <p class="text-lg text-gray-600 mb-8 pb-8 border-b border-gray-200 leading-relaxed">
+              {article.excerpt}
+            </p>
+          )}
+
+          <article class="prose prose-lg max-w-none text-gray-700">
+            <Fragment set:html={renderContent(article.content || '')} />
+          </article>
+
+          {!article.content && (
+            <p class="text-gray-500 italic">Full article content coming soon.</p>
+          )}
+        </Card>
+
+        <div class="mt-8 text-center">
+          <a
+            href="/news"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to All News
+          </a>
+        </div>
+      </div>
+    </Container>
+  </Section>
+</PublicLayout>

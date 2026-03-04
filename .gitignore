@@ -1,0 +1,10 @@
+# Exclude sensitive files
+Secret keys.docx
+assets/
+
+# macOS
+.DS_Store
+._*
+
+# Claude Code
+.claude/

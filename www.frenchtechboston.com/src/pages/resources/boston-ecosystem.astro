@@ -1,0 +1,679 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+
+export const prerender = false;
+
+const sections = [
+  { id: 'introduction', label: 'Where Boston Stands' },
+  { id: 'industries', label: 'Key Industries' },
+  { id: 'funding', label: 'Who Funds What' },
+  { id: 'accelerators', label: 'Accelerators & Incubators' },
+  { id: 'geography', label: 'Geography' },
+  { id: 'communities', label: 'Communities & Networks' },
+  { id: 'universities', label: 'University Pipeline' },
+  { id: 'government', label: 'Government Support' },
+  { id: 'french-founders', label: 'For French Founders' },
+];
+
+const stats = [
+  { value: '#3', label: 'US Startup Ecosystem' },
+  { value: '$17.8B', label: 'Raised in 2025' },
+  { value: '150K+', label: 'Tech Workers' },
+  { value: '65+', label: 'VC Firms' },
+];
+
+const industries = [
+  {
+    name: 'Biotech & Life Sciences',
+    icon: '🧬',
+    color: 'from-emerald-500 to-teal-600',
+    description: 'Boston\'s crown jewel. The Kendall Square to Seaport corridor is the global capital of biotech.',
+    highlights: ['Flagship Pioneering (Moderna)', 'Third Rock Ventures', 'Atlas Venture', 'LabCentral ($2,500/month lab space)'],
+  },
+  {
+    name: 'AI & Machine Learning',
+    icon: '🤖',
+    color: 'from-purple-500 to-indigo-600',
+    description: 'Growing fast, driven by MIT and Harvard research. Liquid AI hit unicorn status in late 2024.',
+    highlights: ['MIT & Harvard research pipeline', 'Boston Generative AI Meetup', 'Microsoft NERD Center'],
+  },
+  {
+    name: 'Enterprise Software & SaaS',
+    icon: '💼',
+    color: 'from-blue-500 to-cyan-600',
+    description: 'HubSpot, Klaviyo, Toast, and Rapid7 are the proof points. Strong B2B talent pool.',
+    highlights: ['HubSpot', 'Klaviyo', 'Toast', 'OpenView (product-led growth thesis)'],
+  },
+  {
+    name: 'Climatetech',
+    icon: '🌱',
+    color: 'from-green-500 to-emerald-600',
+    description: 'Greentown Labs in Somerville is North America\'s largest climatetech incubator.',
+    highlights: ['Greentown Labs (200+ companies)', 'The Engine (5-10 year patient capital)', '100,000+ sq ft of space'],
+  },
+  {
+    name: 'Fintech',
+    icon: '💳',
+    color: 'from-amber-500 to-orange-600',
+    description: 'Growing segment with proximity to Fidelity, State Street, and John Hancock.',
+    highlights: ['Mass FinTech Hub', 'FinTech Sandbox (free data access)', 'F-Prime Capital (Fidelity-backed)'],
+  },
+  {
+    name: 'Robotics & Deeptech',
+    icon: '⚙️',
+    color: 'from-slate-500 to-zinc-600',
+    description: 'MIT spinouts are the engine. Deep hardware and manufacturing expertise.',
+    highlights: ['The Engine patient capital', 'MIT spinout pipeline', 'Hardware manufacturing expertise'],
+  },
+];
+
+const accelerators = [
+  {
+    name: 'MassChallenge',
+    highlight: 'No Equity',
+    description: 'One of the world\'s largest accelerators. Open to all industries. No equity taken.',
+  },
+  {
+    name: 'Techstars Boston',
+    highlight: '$20K for 6%',
+    description: '3-month program. Strong in healthtech, AI, SaaS, and climatetech.',
+  },
+  {
+    name: 'The Engine (MIT)',
+    highlight: 'Tough Tech',
+    description: 'Part incubator, part fund. For MIT-rooted or "tough tech" companies.',
+  },
+  {
+    name: 'Greentown Labs',
+    highlight: 'Climatetech',
+    description: 'Physical climate technology. Lab space, community, corporate partner access.',
+  },
+  {
+    name: 'LabCentral',
+    highlight: 'Biotech',
+    description: '225,000 sq ft of lab space in Kendall Square. The plug-and-play option for biotech.',
+  },
+  {
+    name: 'Harvard i-Lab',
+    highlight: 'No Equity',
+    description: 'Harvard\'s incubator. Claims $7B+ raised by alumni teams. No equity taken.',
+  },
+  {
+    name: 'FinTech Sandbox',
+    highlight: 'Free Data',
+    description: 'Free access to financial data sets for fintech builders.',
+  },
+  {
+    name: 'Dream Venture Labs',
+    highlight: '$25K Grant',
+    description: '6-month program for immigrant, refugee, and minority entrepreneurs.',
+  },
+];
+
+const locations = [
+  {
+    name: 'Kendall Square, Cambridge',
+    nickname: 'Most innovative square mile',
+    description: 'MIT spinouts, major VC firms (Flagship, Third Rock, Atlas), Cambridge Innovation Center. Venture Cafe hosts free Thursday Gatherings.',
+    focus: ['Biotech', 'Deeptech', 'AI'],
+  },
+  {
+    name: 'Seaport / Innovation District',
+    nickname: 'Boston\'s waterfront zone',
+    description: 'MassChallenge HQ. Newer development with growing startup cluster and co-working spaces.',
+    focus: ['Mixed', 'Startups', 'Events'],
+  },
+  {
+    name: 'Back Bay / Downtown',
+    nickname: 'Growth-stage territory',
+    description: 'Battery Ventures, General Catalyst, Bain Capital Ventures. More corporate, more growth-stage.',
+    focus: ['Growth Stage', 'Enterprise'],
+  },
+  {
+    name: 'Somerville',
+    nickname: 'Climatetech headquarters',
+    description: 'Home to Greentown Labs. The neighborhood for physical climate technology companies.',
+    focus: ['Climatetech', 'Hardware'],
+  },
+];
+---
+
+<PublicLayout title="The Boston Tech Ecosystem: A Guide for French Tech Entrepreneurs" description="A comprehensive map of Boston's startup ecosystem: key players, funding sources, and how to navigate it as a French founder.">
+  <!-- Hero Section -->
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <a href="/resources" class="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Resources
+        </a>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          The Boston Tech Ecosystem
+        </h1>
+        <p class="text-xl text-white/70 mb-6">
+          A guide for French tech entrepreneurs: who the key players are, where the money comes from, and how to navigate it.
+        </p>
+        <div class="flex items-center gap-4 text-sm text-white/50">
+          <span>15 min read</span>
+          <span>•</span>
+          <span>Updated February 2026</span>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
+        {stats.map((stat) => (
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
+            <div class="text-2xl sm:text-3xl font-bold text-white">{stat.value}</div>
+            <div class="text-sm text-white/60">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Content Section -->
+  <section class="bg-white py-16">
+    <Container>
+      <div class="flex flex-col lg:flex-row gap-12">
+        <!-- Sidebar Navigation -->
+        <aside class="lg:w-72 flex-shrink-0">
+          <div class="lg:sticky lg:top-8">
+            <nav class="space-y-1 mb-8">
+              {sections.map((section) => (
+                <a
+                  href={`#${section.id}`}
+                  class="nav-link block px-4 py-2 text-gray-600 hover:text-ft-navy hover:bg-gray-50 rounded-lg transition-colors border-l-4 border-transparent"
+                  data-section={section.id}
+                >
+                  {section.label}
+                </a>
+              ))}
+            </nav>
+            <div class="border-t border-gray-200 pt-6">
+              <p class="text-sm text-gray-600 mb-4">Ready to join the ecosystem?</p>
+              <a
+                href="/apply"
+                class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-ft-red text-white rounded-xl hover:bg-ft-red/90 transition-colors font-medium"
+              >
+                Join La French Tech Boston
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content -->
+        <article class="flex-1 max-w-3xl">
+          <!-- Introduction -->
+          <section id="introduction" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-6">Where Boston Stands</h2>
+            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+              Boston is not Silicon Valley, and that's precisely why it's interesting. While the Valley runs on consumer tech and hypergrowth narratives, Boston's ecosystem is built on something harder to replicate: deep research institutions, patient capital, and industries where scientific rigor matters more than speed to market.
+            </p>
+            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+              If you're a French entrepreneur in biotech, AI, deeptech, climate, or enterprise software, this is one of the best places in the world to build.
+            </p>
+
+            <!-- Key Stats Callout -->
+            <div class="bg-ft-navy/5 rounded-2xl p-6 mb-6">
+              <h4 class="font-semibold text-ft-black mb-4">Boston by the Numbers</h4>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="text-ft-red font-bold">3rd</span>
+                  <span class="text-gray-600">Best US startup ecosystem</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-ft-red font-bold">5th</span>
+                  <span class="text-gray-600">Globally</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-ft-red font-bold">800+</span>
+                  <span class="text-gray-600">Deals in 2025</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-ft-red font-bold">3,900+</span>
+                  <span class="text-gray-600">Startups</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-ft-red font-bold">20+</span>
+                  <span class="text-gray-600">Unicorns</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-ft-red font-bold">56</span>
+                  <span class="text-gray-600">Accelerators & incubators</span>
+                </div>
+              </div>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed mb-4">
+              But the numbers don't tell you the most important part: Boston's ecosystem is unusually concentrated around hard problems. The proximity of MIT, Harvard, and world-class hospitals creates a density of scientific talent that feeds directly into company formation. Founders here tend to be researchers-turned-entrepreneurs, and the investors are comfortable with longer timelines and deeper technical risk than their West Coast counterparts.
+            </p>
+            <p class="text-gray-700 leading-relaxed">
+              For French founders, this matters. The French engineering tradition (grandes ecoles, deep technical training, comfort with complexity) maps well onto what Boston values.
+            </p>
+          </section>
+
+          <!-- Industries -->
+          <section id="industries" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-6">The Industries That Define Boston</h2>
+
+            <div class="space-y-6">
+              {industries.map((industry) => (
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+                  <div class="flex items-start gap-4">
+                    <div class={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${industry.color} flex items-center justify-center text-2xl`}>
+                      {industry.icon}
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-xl font-semibold text-ft-black mb-2">{industry.name}</h3>
+                      <p class="text-gray-600 mb-4">{industry.description}</p>
+                      <div class="flex flex-wrap gap-2">
+                        {industry.highlights.map((highlight) => (
+                          <span class="inline-block px-3 py-1 text-xs font-medium text-ft-navy bg-ft-navy/10 rounded-full">
+                            {highlight}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <!-- Funding -->
+          <section id="funding" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-4">Who Funds What</h2>
+            <p class="text-gray-700 leading-relaxed mb-8">
+              Understanding the VC landscape is essential. Boston's firms manage roughly $25 billion collectively, with deep specialization that makes knowing who does what critical.
+            </p>
+
+            <!-- Seed & Early Stage -->
+            <div class="mb-8">
+              <div class="flex items-center gap-3 mb-4">
+                <span class="inline-block px-3 py-1 text-sm font-medium text-emerald-700 bg-emerald-100 rounded-full">Seed & Early Stage</span>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-6">
+                <ul class="space-y-3 text-gray-700">
+                  <li><strong>Pillar VC</strong>: Founder-friendly, launched $175M fourth fund in early 2025</li>
+                  <li><strong>NextView Ventures</strong>: Dedicated seed-stage, deeply Boston-rooted</li>
+                  <li><strong>Flybridge</strong>: Strong early-stage track record</li>
+                  <li><strong>Underscore VC</strong>: Community-driven approach</li>
+                  <li><strong>Accomplice</strong>: Early-stage focus with strong network</li>
+                  <li><strong>Converge</strong>: Specializes in academic spinouts</li>
+                  <li><strong>Glasswing Ventures</strong>: AI-powered enterprise startups specifically</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Growth & Multi-Stage -->
+            <div class="mb-8">
+              <div class="flex items-center gap-3 mb-4">
+                <span class="inline-block px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-full">Growth & Multi-Stage</span>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-6">
+                <ul class="space-y-3 text-gray-700">
+                  <li><strong>General Catalyst</strong>: Deep Boston roots despite global expansion</li>
+                  <li><strong>Bain Capital Ventures</strong>: Cornerstone of local ecosystem; enterprise software, fintech, healthcare</li>
+                  <li><strong>Battery Ventures</strong>: Seed to buyout coverage</li>
+                  <li><strong>Polaris Partners</strong>: Long-standing player with healthcare and tech focus</li>
+                  <li><strong>F-Prime Capital</strong>: Fidelity-backed, healthcare and tech</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Biotech Specific -->
+            <div class="mb-8">
+              <div class="flex items-center gap-3 mb-4">
+                <span class="inline-block px-3 py-1 text-sm font-medium text-purple-700 bg-purple-100 rounded-full">Biotech Specific</span>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-6">
+                <ul class="space-y-3 text-gray-700">
+                  <li><strong>Flagship Pioneering</strong>: Doesn't just invest; they build companies from scratch (created Moderna)</li>
+                  <li><strong>Third Rock Ventures</strong>: Company-building approach, recruits founding teams</li>
+                  <li><strong>Atlas Venture</strong>: Same model as above</li>
+                  <li><strong>RA Capital</strong>: Biotech and healthcare innovation</li>
+                </ul>
+                <p class="text-sm text-gray-500 mt-4 italic">
+                  Note: These firms operate differently. They often recruit the founding team, not the other way around.
+                </p>
+              </div>
+            </div>
+
+            <!-- Deeptech & Climate -->
+            <div class="mb-8">
+              <div class="flex items-center gap-3 mb-4">
+                <span class="inline-block px-3 py-1 text-sm font-medium text-green-700 bg-green-100 rounded-full">Deeptech & Climate</span>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-6">
+                <ul class="space-y-3 text-gray-700">
+                  <li><strong>The Engine (MIT-backed)</strong>: The standout. $1M-$5M investments with patience for 5-10 year development cycles</li>
+                  <li><strong>MassVentures</strong>: State-backed, invests in early-stage Massachusetts companies</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Angel Networks -->
+            <div>
+              <div class="flex items-center gap-3 mb-4">
+                <span class="inline-block px-3 py-1 text-sm font-medium text-amber-700 bg-amber-100 rounded-full">Angel Networks</span>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-6">
+                <p class="text-gray-700 mb-3">Particularly relevant for pre-seed French founders who may not yet have US traction:</p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="px-3 py-1 text-sm bg-white border border-gray-200 rounded-lg">Beacon Angels</span>
+                  <span class="px-3 py-1 text-sm bg-white border border-gray-200 rounded-lg">Boston Harbor Angels</span>
+                  <span class="px-3 py-1 text-sm bg-white border border-gray-200 rounded-lg">Launchpad Venture Group</span>
+                  <span class="px-3 py-1 text-sm bg-white border border-gray-200 rounded-lg">Golden Seeds</span>
+                  <span class="px-3 py-1 text-sm bg-white border border-gray-200 rounded-lg">Angel Invest Boston</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Accelerators -->
+          <section id="accelerators" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-6">Accelerators and Incubators Worth Knowing</h2>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              {accelerators.map((acc) => (
+                <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+                  <div class="flex items-start justify-between mb-2">
+                    <h3 class="font-semibold text-ft-black">{acc.name}</h3>
+                    <span class="inline-block px-2 py-0.5 text-xs font-medium text-ft-red bg-ft-red/10 rounded-full">
+                      {acc.highlight}
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-600">{acc.description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <!-- Geography -->
+          <section id="geography" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-4">The Geography: Where Things Happen</h2>
+            <p class="text-gray-700 leading-relaxed mb-8">
+              Boston's ecosystem is clustered in a few key areas, and knowing the geography helps you find the right people.
+            </p>
+
+            <div class="space-y-4">
+              {locations.map((loc) => (
+                <div class="bg-gradient-to-r from-ft-navy/5 to-transparent rounded-xl p-6 border-l-4 border-ft-navy">
+                  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                    <h3 class="text-lg font-semibold text-ft-black">{loc.name}</h3>
+                    <span class="text-sm text-ft-navy italic">{loc.nickname}</span>
+                  </div>
+                  <p class="text-gray-600 mb-3">{loc.description}</p>
+                  <div class="flex flex-wrap gap-2">
+                    {loc.focus.map((f) => (
+                      <span class="px-2 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded">
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <!-- Communities -->
+          <section id="communities" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-4">Communities and Networks</h2>
+            <p class="text-gray-700 leading-relaxed mb-8">
+              Beyond La French Tech Boston, here are the communities worth plugging into:
+            </p>
+
+            <div class="space-y-6">
+              <!-- Broad Networking -->
+              <div>
+                <h3 class="text-lg font-semibold text-ft-black mb-3">For Broad Startup Networking</h3>
+                <div class="bg-gray-50 rounded-xl p-5">
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>Startup Boston</strong>: Citywide events</li>
+                    <li><strong>Boston New Technology (BNT)</strong>: Running 15+ years</li>
+                    <li><strong>Venture Cafe Cambridge</strong>: Free weekly programming every Thursday</li>
+                    <li><strong>Boston Founders Forum</strong>: Speakers from Harvard professors to successful entrepreneurs</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Biotech -->
+              <div>
+                <h3 class="text-lg font-semibold text-ft-black mb-3">For Biotech</h3>
+                <div class="bg-gray-50 rounded-xl p-5">
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>MassBio</strong>: Supports 1,700+ biopharma organizations, a global player</li>
+                    <li><strong>Women in Bio: Boston</strong>: Professional development for women in life sciences</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Fintech -->
+              <div>
+                <h3 class="text-lg font-semibold text-ft-black mb-3">For Fintech</h3>
+                <div class="bg-gray-50 rounded-xl p-5">
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>Mass FinTech Hub</strong>: Central public-private partnership connecting founders, academics, and investors</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- AI -->
+              <div>
+                <h3 class="text-lg font-semibold text-ft-black mb-3">For AI</h3>
+                <div class="bg-gray-50 rounded-xl p-5">
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>Boston Generative AI Meetup</strong>: Monthly at Microsoft's NERD Center</li>
+                    <li><strong>Aethos</strong>: Physical AI hubs in Cambridge (and Berlin, a nice France-adjacent connection)</li>
+                    <li><strong>AI Innovators Community</strong>: Free membership with resources and events</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Climatetech & Hardware -->
+              <div>
+                <h3 class="text-lg font-semibold text-ft-black mb-3">For Climatetech & Hardware</h3>
+                <div class="bg-gray-50 rounded-xl p-5">
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>FORGE</strong>: Nonprofit helping hardware innovators move from prototype to commercial product</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Diversity & Inclusion -->
+              <div>
+                <h3 class="text-lg font-semibold text-ft-black mb-3">For Diversity & Inclusion</h3>
+                <div class="bg-gray-50 rounded-xl p-5">
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>Boston Business Women</strong></li>
+                    <li><strong>Center for Women & Enterprise</strong>: 25+ years running</li>
+                    <li><strong>ALPFA Boston</strong>: 10,000+ members</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Universities -->
+          <section id="universities" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-4">The University Pipeline</h2>
+            <p class="text-gray-700 leading-relaxed mb-8">
+              This is Boston's structural advantage and the single biggest reason the ecosystem keeps renewing itself.
+            </p>
+
+            <div class="space-y-6">
+              <!-- MIT -->
+              <div class="bg-white border-2 border-ft-red/20 rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 bg-ft-red/10 rounded-xl flex items-center justify-center text-2xl font-bold text-ft-red">M</div>
+                  <div>
+                    <h3 class="text-xl font-bold text-ft-black">MIT</h3>
+                    <p class="text-sm text-gray-500">Massachusetts Institute of Technology</p>
+                  </div>
+                </div>
+                <p class="text-gray-700 mb-4">
+                  Produces a disproportionate share of the world's deeptech, AI, and biotech companies. If you're collaborating with MIT researchers or hiring from MIT, you're tapping into the core of the Boston ecosystem.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">MIT Delta V (accelerator)</span>
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">MIT Sandbox (early funding)</span>
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">The Engine (patient capital)</span>
+                </div>
+              </div>
+
+              <!-- Harvard -->
+              <div class="bg-white border border-gray-200 rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 bg-red-800/10 rounded-xl flex items-center justify-center text-2xl font-bold text-red-800">H</div>
+                  <div>
+                    <h3 class="text-xl font-bold text-ft-black">Harvard</h3>
+                    <p class="text-sm text-gray-500">Harvard University</p>
+                  </div>
+                </div>
+                <p class="text-gray-700 mb-4">
+                  The i-Lab (no-equity incubator), HBS entrepreneurship programs, and an alumni network spanning finance, government, and industry globally.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">Harvard Innovation Labs (i-Lab)</span>
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">HBS Entrepreneurship</span>
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">Global Alumni Network</span>
+                </div>
+              </div>
+
+              <!-- Northeastern -->
+              <div class="bg-white border border-gray-200 rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 bg-red-600/10 rounded-xl flex items-center justify-center text-2xl font-bold text-red-600">N</div>
+                  <div>
+                    <h3 class="text-xl font-bold text-ft-black">Northeastern</h3>
+                    <p class="text-sm text-gray-500">Northeastern University</p>
+                  </div>
+                </div>
+                <p class="text-gray-700 mb-4">
+                  Runs the IDEA venture accelerator. One of the strongest co-op programs in the country, making it a great source of startup talent willing to work for early-stage companies.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">IDEA Venture Accelerator</span>
+                  <span class="px-3 py-1 text-sm bg-gray-100 rounded-lg">Co-op Program</span>
+                </div>
+              </div>
+
+              <!-- Others -->
+              <div class="bg-gray-50 rounded-xl p-5">
+                <h4 class="font-semibold text-ft-black mb-3">Also Contributing</h4>
+                <p class="text-gray-600">
+                  <strong>Boston University</strong>, <strong>Tufts</strong>, and <strong>UMass Boston</strong> round out the academic ecosystem with additional research output and talent.
+                </p>
+              </div>
+
+              <!-- Note for French Founders -->
+              <div class="bg-ft-navy/5 border border-ft-navy/20 rounded-xl p-5">
+                <h4 class="font-semibold text-ft-navy mb-2">For French Founders</h4>
+                <p class="text-gray-700">
+                  Boston's universities are remarkably open to collaboration with external entrepreneurs. Guest lectures, mentorship programs, co-op hiring, and joint research are all possible. You just have to ask.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Government Support -->
+          <section id="government" class="scroll-mt-8 mb-16">
+            <h2 class="text-3xl font-bold text-ft-black mb-6">Government and Public Support</h2>
+
+            <div class="space-y-4">
+              <div class="bg-white border border-gray-200 rounded-xl p-5">
+                <h3 class="font-semibold text-ft-black mb-2">MassVentures</h3>
+                <p class="text-gray-600">State-backed VC investing in early-stage Massachusetts companies. Worth knowing about for non-dilutive or low-dilution funding.</p>
+              </div>
+
+              <div class="bg-white border border-gray-200 rounded-xl p-5">
+                <h3 class="font-semibold text-ft-black mb-2">City of Boston StartHub</h3>
+                <p class="text-gray-600">A centralized resource connecting entrepreneurs to city services. Useful for navigating permits, regulations, and local programs.</p>
+              </div>
+
+              <div class="bg-white border border-gray-200 rounded-xl p-5">
+                <h3 class="font-semibold text-ft-black mb-2">Massachusetts Office of International Trade and Investment</h3>
+                <p class="text-gray-600">Specifically supports global connections for local startups. As a French founder building cross-Atlantic ties, this office can be an ally.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- For French Founders -->
+          <section id="french-founders" class="scroll-mt-8">
+            <h2 class="text-3xl font-bold text-ft-black mb-6">What This Means for French Founders</h2>
+
+            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+              Boston is not trying to be Silicon Valley. It doesn't need to. The city's strengths (research depth, technical talent, patient capital, and industry concentration in biotech, AI, and deeptech) create an environment where French entrepreneurs' technical training and long-term thinking are assets, not liabilities.
+            </p>
+
+            <p class="text-gray-700 leading-relaxed mb-6">
+              The ecosystem rewards founders who understand their science, can articulate a defensible thesis, and are willing to build for the long term. That's a profile that maps well onto the French engineering and research tradition.
+            </p>
+
+            <p class="text-gray-700 leading-relaxed mb-8">
+              Use this guide as a starting point. Use the La French Tech Boston community to fill in the gaps. Someone here has already navigated whatever you're about to face.
+            </p>
+
+            <!-- CTA Box -->
+            <div class="bg-gradient-to-br from-ft-navy to-ft-navy/90 rounded-2xl p-8 text-center">
+              <h3 class="text-2xl font-bold text-white mb-4">Ready to explore the ecosystem?</h3>
+              <p class="text-white/70 mb-6">
+                Join La French Tech Boston to connect with French founders already navigating Boston, access our investor directory, and get introductions.
+              </p>
+              <a
+                href="/apply"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-ft-red text-white rounded-xl hover:bg-ft-red/90 transition-colors font-medium"
+              >
+                Join La French Tech Boston
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+
+            <!-- Footer Note -->
+            <p class="text-sm text-gray-400 mt-8 text-center italic">
+              This guide is maintained by La French Tech Boston. The ecosystem moves fast. If you spot something outdated or missing, let us know.
+            </p>
+          </section>
+        </article>
+      </div>
+    </Container>
+  </section>
+</PublicLayout>
+
+<script>
+  // Highlight active section in sidebar
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('section[id]');
+
+  function updateActiveLink() {
+    let current = '';
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      if (window.scrollY >= sectionTop - 100) {
+        current = section.getAttribute('id') || '';
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.classList.remove('border-ft-red', 'text-ft-navy', 'bg-gray-50');
+      link.classList.add('border-transparent');
+      if (link.getAttribute('data-section') === current) {
+        link.classList.add('border-ft-red', 'text-ft-navy', 'bg-gray-50');
+        link.classList.remove('border-transparent');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveLink);
+  updateActiveLink();
+</script>

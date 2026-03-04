@@ -1,0 +1,63 @@
+---
+import { createServerClient, getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+const code = Astro.url.searchParams.get('code');
+const redirect = Astro.url.searchParams.get('redirect') || '/members';
+const error = Astro.url.searchParams.get('error');
+const errorDescription = Astro.url.searchParams.get('error_description');
+
+if (error) {
+  console.error('Auth callback error:', error, errorDescription);
+  return Astro.redirect(`/auth/login?error=${encodeURIComponent(errorDescription || error)}`);
+}
+
+// Create SSR client which reads PKCE code_verifier from cookies
+const supabase = createServerClient(Astro.cookies, Astro.request);
+
+if (!code || !supabase) {
+  return Astro.redirect('/auth/login');
+}
+
+// Exchange code for session - SSR client handles PKCE verification via cookies
+const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+if (exchangeError || !data.session) {
+  console.error('Exchange error:', exchangeError);
+  return Astro.redirect('/auth/login?error=auth_failed');
+}
+
+// SSR client automatically sets session cookies via setAll callback
+// No need to manually call setAuthCookies
+
+// Check if this user has a member row — link by email if not yet linked
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+const userEmail = data.session.user.email?.toLowerCase();
+const userId = data.session.user.id;
+
+if (supabaseAdmin && userEmail) {
+  // Look for a member row matching this email (case-insensitive, bypasses RLS)
+  const { data: member } = await supabaseAdmin
+    .from('members')
+    .select('id, user_id')
+    .ilike('email', userEmail)
+    .single();
+
+  if (member && !member.user_id) {
+    // Link the Supabase auth user to the pre-loaded member row
+    await supabaseAdmin
+      .from('members')
+      .update({ user_id: userId })
+      .eq('id', member.id);
+  }
+
+  if (!member) {
+    // Not a member — redirect to apply page
+    return Astro.redirect('/apply?not_member=true');
+  }
+}
+
+// Redirect to intended destination
+return Astro.redirect(redirect);
+---

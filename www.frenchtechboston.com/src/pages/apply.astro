@@ -1,0 +1,290 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+import Container from '../components/common/Container.astro';
+import Section from '../components/common/Section.astro';
+import Card from '../components/common/Card.astro';
+import Button from '../components/common/Button.astro';
+
+
+export const prerender = false;
+
+const notMember = Astro.url.searchParams.get('not_member');
+---
+
+<PublicLayout title="Join Us" description="Join La French Tech Boston community of entrepreneurs and innovators.">
+  {notMember && (
+    <div class="bg-amber-50 border-b border-amber-200">
+      <Container>
+        <div class="py-4 flex items-center gap-3 text-amber-800">
+          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          <p class="text-sm font-medium">
+            Your email is not associated with an existing membership. Please join below.
+          </p>
+        </div>
+      </Container>
+    </div>
+  )}
+
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-6">Join La French Tech Boston</h1>
+        <p class="text-xl text-white/70">
+          Join our community of entrepreneurs, tech executives, and innovators building the bridge between France and the US.
+        </p>
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="navy-gradient" padding="lg">
+    <Container size="md">
+      <div class="grid lg:grid-cols-3 gap-12">
+        <!-- Join Form -->
+        <div class="lg:col-span-2">
+          <!-- Free Membership Callout -->
+          <div class="mb-6 backdrop-blur-xl bg-green-50/90 rounded-2xl p-6 border border-green-200/50 shadow-lg">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-green-800 mb-1">Membership is free.</h3>
+                <p class="text-sm text-green-700">
+                  We believe in building a community where everyone contributes, not a paywall. All we need is your email to get started.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="backdrop-blur-xl bg-white/90 rounded-2xl p-8 border border-white/50 shadow-xl shadow-black/20">
+            <h2 class="text-2xl font-bold text-ft-black mb-6">Join Our Community</h2>
+            <form id="apply-form" class="space-y-6">
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="name" class="block text-sm font-medium text-ft-black mb-1">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red bg-white/80 text-gray-900 placeholder-gray-400"
+                    placeholder="Your full name"
+                  />
+                </div>
+
+                <div>
+                  <label for="email" class="block text-sm font-medium text-ft-black mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red bg-white/80 text-gray-900 placeholder-gray-400"
+                    placeholder="you@company.com"
+                  />
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="company" class="block text-sm font-medium text-ft-black mb-1">
+                    Company
+                  </label>
+                  <input
+                    type="text"
+                    id="company"
+                    name="company"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red bg-white/80 text-gray-900 placeholder-gray-400"
+                    placeholder="Your company"
+                  />
+                </div>
+
+                <div>
+                  <label for="role" class="block text-sm font-medium text-ft-black mb-1">
+                    Role/Title
+                  </label>
+                  <input
+                    type="text"
+                    id="role"
+                    name="role"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red bg-white/80 text-gray-900 placeholder-gray-400"
+                    placeholder="Your role"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="linkedin" class="block text-sm font-medium text-ft-black mb-1">
+                  LinkedIn Profile URL *
+                </label>
+                <input
+                  type="url"
+                  id="linkedin"
+                  name="linkedin"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red bg-white/80 text-gray-900 placeholder-gray-400"
+                  placeholder="https://linkedin.com/in/..."
+                />
+              </div>
+
+              <div>
+                <label for="reason" class="block text-sm font-medium text-ft-black mb-1">
+                  Why do you want to join La French Tech Boston? *
+                </label>
+                <textarea
+                  id="reason"
+                  name="reason"
+                  rows="4"
+                  required
+                  minlength="20"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none bg-white/80 text-gray-900 placeholder-gray-400"
+                  placeholder="Tell us about yourself and why you're interested in joining..."
+                ></textarea>
+                <p id="reason-error" class="text-sm text-red-600 mt-1 hidden">Please tell us a bit more (at least 20 characters).</p>
+              </div>
+
+              <Button type="submit" variant="primary" class="w-full">
+                Join
+              </Button>
+
+              <p id="form-message" class="text-sm text-center hidden"></p>
+            </form>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+          <Card variant="glass" hover>
+            <h3 class="font-semibold text-ft-black mb-3">Who can join?</h3>
+            <ul class="space-y-2 text-sm text-gray-600">
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">•</span>
+                French entrepreneurs and tech professionals
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">•</span>
+                Americans and internationals interested in the French tech ecosystem
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">•</span>
+                Founders, executives, and students in the Boston / New England area
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">•</span>
+                VCs and investors supporting cross-Atlantic innovation
+              </li>
+            </ul>
+          </Card>
+
+          <Card variant="glass" hover>
+            <h3 class="font-semibold text-ft-black mb-3">Member Benefits</h3>
+            <ul class="space-y-2 text-sm text-gray-600">
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">✓</span>
+                Access to member directory
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">✓</span>
+                Exclusive events and workshops
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">✓</span>
+                Access to a shared investor directory built by the community
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">✓</span>
+                Request introductions to fellow members and their investor contacts
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">✓</span>
+                Connect with French Tech chapters across the US
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-ft-red">✓</span>
+                Resources and guides
+              </li>
+            </ul>
+          </Card>
+
+          <Card variant="glass" hover>
+            <h3 class="font-semibold text-ft-black mb-3">Questions?</h3>
+            <p class="text-sm text-gray-600 mb-3">
+              Have questions about joining?
+            </p>
+            <Button href="/contact" variant="outline" size="sm">
+              Contact Us
+            </Button>
+          </Card>
+        </div>
+      </div>
+    </Container>
+  </Section>
+</PublicLayout>
+
+<script>
+  const form = document.getElementById('apply-form') as HTMLFormElement;
+  const message = document.getElementById('form-message') as HTMLElement;
+  const reasonField = document.getElementById('reason') as HTMLTextAreaElement;
+  const reasonError = document.getElementById('reason-error') as HTMLElement;
+
+  // Validate reason length on input
+  reasonField?.addEventListener('input', () => {
+    if (reasonField.value.length >= 20) {
+      reasonError.classList.add('hidden');
+      reasonField.classList.remove('border-red-500');
+    }
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    // Validate reason length
+    const reason = formData.get('reason') as string;
+    if (reason.length < 20) {
+      reasonError.classList.remove('hidden');
+      reasonField.classList.add('border-red-500');
+      reasonField.focus();
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.get('name'),
+          email: formData.get('email'),
+          company: formData.get('company'),
+          role: formData.get('role'),
+          linkedin: formData.get('linkedin'),
+          reason: formData.get('reason'),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        message.textContent = 'Welcome! We\'ll review your request and get back to you soon.';
+        message.className = 'text-sm text-center text-green-600';
+        form.reset();
+      } else {
+        message.textContent = data.error || 'Something went wrong.';
+        message.className = 'text-sm text-center text-red-600';
+      }
+      message.classList.remove('hidden');
+    } catch (error) {
+      message.textContent = 'Something went wrong. Please try again.';
+      message.className = 'text-sm text-center text-red-600';
+      message.classList.remove('hidden');
+    }
+  });
+</script>

@@ -1,0 +1,248 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+import Card from '../../components/common/Card.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+const token = Astro.url.searchParams.get('token');
+
+let member: any = null;
+let error = '';
+
+if (!token) {
+  error = 'Missing upload token. Please use the link provided to you.';
+} else if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('board_members')
+    .select('id, name, title, company, image_url')
+    .eq('upload_token', token)
+    .single();
+
+  if (fetchError || !data) {
+    error = 'Invalid or expired upload link. Please contact the admin for a new link.';
+  } else {
+    member = data;
+  }
+}
+---
+
+<PublicLayout title="Upload Your Photo" description="Upload your board member photo for La French Tech Boston.">
+  <Section background="navy-gradient" padding="lg">
+    <Container size="sm">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl font-bold mb-4">Upload Your Photo</h1>
+        <p class="text-white/70">
+          Add your profile photo to the La French Tech Boston website
+        </p>
+      </div>
+
+      {error ? (
+        <Card variant="glass">
+          <div class="text-center py-8">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-ft-black mb-2">Error</h2>
+            <p class="text-gray-600">{error}</p>
+          </div>
+        </Card>
+      ) : member && (
+        <Card variant="glass">
+          <div class="text-center">
+            <!-- Current Photo or Placeholder -->
+            <div class="mb-6">
+              {member.image_url ? (
+                <img
+                  id="current-photo"
+                  src={member.image_url}
+                  alt={member.name}
+                  class="w-32 h-32 rounded-2xl object-cover mx-auto shadow-lg"
+                />
+              ) : (
+                <div id="current-photo" class="w-32 h-32 rounded-2xl bg-gradient-to-br from-ft-red to-rose-600 flex items-center justify-center mx-auto shadow-lg">
+                  <span class="text-4xl font-bold text-white">
+                    {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <h2 class="text-2xl font-bold text-ft-black mb-1">{member.name}</h2>
+            {(member.title || member.company) && (
+              <p class="text-gray-600 mb-6">
+                {member.title}
+                {member.title && member.company && ' at '}
+                {member.company}
+              </p>
+            )}
+
+            <!-- Upload Form -->
+            <form id="upload-form" class="space-y-4">
+              <input type="hidden" name="token" value={token} />
+
+              <div>
+                <label class="block cursor-pointer">
+                  <div id="drop-zone" class="px-6 py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-ft-red hover:bg-ft-red/5 transition-colors">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p id="upload-text" class="text-gray-600">
+                      <span class="text-ft-red font-medium">Click to upload</span> or drag and drop
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">JPG, PNG, WebP or GIF. Max 5MB.</p>
+                  </div>
+                  <input
+                    type="file"
+                    id="photo-input"
+                    name="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    class="hidden"
+                    required
+                  />
+                </label>
+              </div>
+
+              <!-- Preview -->
+              <div id="preview-container" class="hidden">
+                <img id="preview-image" src="" alt="Preview" class="w-32 h-32 rounded-2xl object-cover mx-auto shadow-lg" />
+                <p id="file-name" class="text-sm text-gray-600 mt-2"></p>
+              </div>
+
+              <button
+                type="submit"
+                id="submit-btn"
+                disabled
+                class="w-full px-6 py-3 bg-ft-red text-white font-medium rounded-xl hover:bg-ft-red/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Upload Photo
+              </button>
+
+              <p id="status-message" class="text-sm text-center hidden"></p>
+            </form>
+          </div>
+        </Card>
+      )}
+    </Container>
+  </Section>
+</PublicLayout>
+
+<script>
+  const form = document.getElementById('upload-form') as HTMLFormElement;
+  const fileInput = document.getElementById('photo-input') as HTMLInputElement;
+  const dropZone = document.getElementById('drop-zone') as HTMLDivElement;
+  const uploadText = document.getElementById('upload-text') as HTMLParagraphElement;
+  const previewContainer = document.getElementById('preview-container') as HTMLDivElement;
+  const previewImage = document.getElementById('preview-image') as HTMLImageElement;
+  const fileName = document.getElementById('file-name') as HTMLParagraphElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const statusMessage = document.getElementById('status-message') as HTMLParagraphElement;
+  const currentPhoto = document.getElementById('current-photo') as HTMLElement;
+
+  let selectedFile: File | null = null;
+
+  // File selection
+  fileInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) handleFileSelect(file);
+  });
+
+  // Drag and drop
+  dropZone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-ft-red', 'bg-ft-red/5');
+  });
+
+  dropZone?.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-ft-red', 'bg-ft-red/5');
+  });
+
+  dropZone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-ft-red', 'bg-ft-red/5');
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleFileSelect(file);
+  });
+
+  function handleFileSelect(file: File) {
+    // Validate type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please select a JPG, PNG, WebP, or GIF image.');
+      return;
+    }
+
+    // Validate size
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File is too large. Maximum size is 5MB.');
+      return;
+    }
+
+    selectedFile = file;
+    fileName.textContent = file.name;
+    submitBtn.disabled = false;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImage.src = e.target?.result as string;
+      previewContainer.classList.remove('hidden');
+      if (currentPhoto) currentPhoto.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Form submission
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!selectedFile) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Uploading...';
+    statusMessage.classList.add('hidden');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('token', (form.querySelector('input[name="token"]') as HTMLInputElement).value);
+
+    try {
+      const response = await fetch('/api/board/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        statusMessage.textContent = 'Photo uploaded successfully! Thank you.';
+        statusMessage.className = 'text-sm text-center text-green-600';
+        statusMessage.classList.remove('hidden');
+        submitBtn.textContent = 'Uploaded!';
+
+        // Update preview to show uploaded image
+        if (data.imageUrl) {
+          previewImage.src = data.imageUrl;
+        }
+      } else {
+        statusMessage.textContent = data.error || 'Upload failed. Please try again.';
+        statusMessage.className = 'text-sm text-center text-red-600';
+        statusMessage.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Upload Photo';
+      }
+    } catch (error) {
+      statusMessage.textContent = 'Something went wrong. Please try again.';
+      statusMessage.className = 'text-sm text-center text-red-600';
+      statusMessage.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Upload Photo';
+    }
+  });
+</script>

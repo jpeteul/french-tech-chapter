@@ -1,0 +1,233 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import Button from '../../components/common/Button.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let resources: any[] = [];
+let featuredResource: any = null;
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data } = await supabaseAdmin
+    .from('resources')
+    .select('*')
+    .eq('is_published', true)
+    .order('display_order', { ascending: true });
+
+  if (data) {
+    resources = data;
+    featuredResource = data.find(r => r.is_featured);
+  }
+}
+
+function getResourceLink(resource: any): string {
+  if (resource.type === 'article' && resource.slug) {
+    return `/resources/${resource.slug}`;
+  }
+  if (resource.type === 'file' && resource.slug) {
+    return `/resources/${resource.slug}`;
+  }
+  if (resource.link_url) {
+    return resource.link_url;
+  }
+  if (resource.slug) {
+    return `/resources/${resource.slug}`;
+  }
+  return '#';
+}
+
+function isExternalLink(resource: any): boolean {
+  return resource.type === 'link' && resource.link_url?.startsWith('http');
+}
+
+const getResourceIcon = (type: string) => {
+  switch (type) {
+    case 'file': return '📄';
+    case 'guide': return '📘';
+    case 'article': return '📝';
+    case 'link': return '🔗';
+    case 'member_page': return '👥';
+    default: return '📄';
+  }
+};
+---
+
+<PublicLayout title="Resources" description="Guides and resources for French entrepreneurs building companies in the US.">
+  <!-- Hero Section with Gradient Background -->
+  <section class="relative text-white overflow-hidden min-h-[400px] flex items-center">
+    <!-- Background gradient -->
+    <div class="absolute inset-0 bg-gradient-to-br from-ft-navy via-ft-blue to-ft-navy"></div>
+
+    <!-- Decorative gradient blobs -->
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-ft-red/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-ft-blue/40 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+    <div class="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-ft-red/10 to-transparent rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+
+    <Container class="relative py-20 sm:py-28">
+      <div class="max-w-3xl">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-ft-red/20 backdrop-blur-sm rounded-full border border-ft-red/30">
+          <span class="w-2 h-2 bg-ft-red rounded-full animate-pulse"></span>
+          <span class="text-sm text-ft-red font-medium">Knowledge Base</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg">Resources</h1>
+        <p class="text-xl text-gray-200 drop-shadow-md max-w-2xl">
+          Guides and resources to help French entrepreneurs succeed in the US market.
+        </p>
+      </div>
+    </Container>
+  </section>
+
+  <!-- Featured Resource -->
+  {featuredResource && (
+    <Section background="navy-gradient" padding="lg">
+      <Container>
+        <div class="backdrop-blur-xl bg-white/95 rounded-3xl p-8 md:p-12 border border-white/50 shadow-2xl shadow-black/20">
+          <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 mb-4 bg-gradient-to-r from-ft-red/10 to-ft-blue/10 rounded-full border border-ft-red/20">
+                <span class="text-sm font-semibold text-ft-red">Featured Resource</span>
+              </div>
+              <h2 class="text-3xl font-bold text-ft-navy mt-2 mb-4">{featuredResource.title}</h2>
+              <p class="text-gray-600 mb-6 leading-relaxed">
+                {featuredResource.description}
+              </p>
+              <div class="flex flex-wrap gap-2 mb-6">
+                {featuredResource.is_gated && (
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm font-medium border border-amber-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Email Required
+                  </span>
+                )}
+                {featuredResource.is_members_only && (
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Members Only
+                  </span>
+                )}
+              </div>
+              <a
+                href={getResourceLink(featuredResource)}
+                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ft-red to-ft-red/90 text-white font-semibold rounded-xl hover:from-ft-red/90 hover:to-ft-red transition-all duration-300 shadow-lg shadow-ft-red/25 hover:shadow-xl hover:shadow-ft-red/30 hover:-translate-y-0.5"
+              >
+                {featuredResource.type === 'file' ? 'Get the Resource' :
+                 featuredResource.type === 'member_page' ? 'Access Now' :
+                 'Learn More'}
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+            <div class="flex justify-center">
+              {featuredResource.image_url ? (
+                <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-2xl shadow-black/20 ring-4 ring-white/50">
+                  <img
+                    src={featuredResource.image_url}
+                    alt={featuredResource.title}
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div class="w-48 h-64 bg-gradient-to-br from-ft-navy/10 via-ft-blue/10 to-ft-red/10 rounded-2xl flex items-center justify-center text-8xl shadow-xl ring-4 ring-white/50">
+                  {featuredResource.icon || getResourceIcon(featuredResource.type)}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Container>
+    </Section>
+  )}
+
+  <!-- All Resources -->
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-1 h-8 bg-gradient-to-b from-ft-red to-ft-red/50 rounded-full"></div>
+        <h2 class="text-2xl font-bold text-white">All Resources</h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        {resources.map((resource) => (
+          <a
+            href={getResourceLink(resource)}
+            target={isExternalLink(resource) ? '_blank' : undefined}
+            rel={isExternalLink(resource) ? 'noopener noreferrer' : undefined}
+            class="group block"
+          >
+            <div class="backdrop-blur-xl bg-white/90 rounded-2xl p-6 border border-white/50 shadow-xl shadow-black/20 hover:bg-white hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-1 transition-all duration-300">
+              <div class="flex gap-4">
+                {resource.image_url ? (
+                  <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 ring-2 ring-white/50 shadow-lg">
+                    <img
+                      src={resource.image_url}
+                      alt={resource.title}
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-ft-navy/10 to-ft-red/10 flex items-center justify-center text-3xl flex-shrink-0 shadow-inner">
+                    {resource.icon || getResourceIcon(resource.type)}
+                  </div>
+                )}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2 mb-2">
+                    <h3 class="text-lg font-semibold text-ft-navy group-hover:text-ft-red transition-colors">{resource.title}</h3>
+                    <div class="flex flex-wrap gap-1.5 flex-shrink-0">
+                      {resource.is_gated && (
+                        <span class="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs font-medium border border-amber-200">
+                          Email
+                        </span>
+                      )}
+                      {resource.is_members_only && (
+                        <span class="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                          Members
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-3 line-clamp-2">{resource.description}</p>
+                  <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
+                      {resource.type === 'member_page' ? 'Member Access' : resource.type.charAt(0).toUpperCase() + resource.type.slice(1)}
+                    </span>
+                    {isExternalLink(resource) && (
+                      <span class="text-xs text-gray-400 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        External
+                      </span>
+                    )}
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-ft-red group-hover:translate-x-1 transition-all ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      {resources.length === 0 && (
+        <div class="backdrop-blur-xl bg-white/90 rounded-2xl p-12 border border-white/50 shadow-xl text-center">
+          <div class="text-6xl mb-4">📚</div>
+          <p class="text-gray-500">No resources available yet. Check back soon!</p>
+        </div>
+      )}
+    </Container>
+  </Section>
+</PublicLayout>

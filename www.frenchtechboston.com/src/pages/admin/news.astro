@@ -1,0 +1,445 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let articles: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('news')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    articles = data || [];
+  }
+}
+
+const publishedArticles = articles.filter(a => a.is_published);
+const draftArticles = articles.filter(a => !a.is_published);
+
+const categories = ['News', 'Community', 'Events', 'Spotlight', 'Partnership', 'Announcement'];
+---
+
+<AdminLayout title="Manage News">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Manage News</h1>
+      <p class="text-white/70 mt-2">
+        Create and manage news articles
+      </p>
+    </div>
+    <button
+      id="add-article-btn"
+      class="px-4 py-2 bg-ft-red text-white font-medium rounded-xl hover:bg-ft-red/90 transition-all duration-300 shadow-lg shadow-ft-red/25"
+    >
+      + New Article
+    </button>
+  </div>
+
+  {error && (
+    <Card variant="glass" class="mb-6 border-red-500/50">
+      <p class="text-red-600">{error}</p>
+    </Card>
+  )}
+
+  <!-- Add/Edit Article Modal -->
+  <div id="article-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="backdrop-blur-xl bg-white/95 rounded-2xl p-8 border border-white/50 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <h2 id="modal-title" class="text-2xl font-bold text-ft-black mb-6">New Article</h2>
+      <form id="article-form" class="space-y-4">
+        <input type="hidden" id="article-id" name="id" />
+
+        <div>
+          <label for="title" class="block text-sm font-medium text-ft-black mb-1">Title *</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="Article title"
+          />
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="slug" class="block text-sm font-medium text-ft-black mb-1">Slug *</label>
+            <input
+              type="text"
+              id="slug"
+              name="slug"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="article-url-slug"
+            />
+          </div>
+          <div>
+            <label for="category" class="block text-sm font-medium text-ft-black mb-1">Category</label>
+            <select
+              id="category"
+              name="category"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            >
+              {categories.map(cat => (
+                <option value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="excerpt" class="block text-sm font-medium text-ft-black mb-1">Excerpt</label>
+          <textarea
+            id="excerpt"
+            name="excerpt"
+            rows="2"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none"
+            placeholder="Brief summary for article cards..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="content" class="block text-sm font-medium text-ft-black mb-1">Content</label>
+          <textarea
+            id="content"
+            name="content"
+            rows="8"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none font-mono text-sm"
+            placeholder="Full article content (Markdown supported)..."
+          ></textarea>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="image_url" class="block text-sm font-medium text-ft-black mb-1">Image URL</label>
+            <input
+              type="text"
+              id="image_url"
+              name="image_url"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="/images/news/..."
+            />
+          </div>
+          <div>
+            <label for="author_name" class="block text-sm font-medium text-ft-black mb-1">Author</label>
+            <input
+              type="text"
+              id="author_name"
+              name="author_name"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="Author name"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="is_published"
+              name="is_published"
+              class="h-4 w-4 text-ft-red focus:ring-ft-red border-gray-300 rounded"
+            />
+            <span class="text-sm text-gray-600">Publish article (visible to public)</span>
+          </label>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 bg-ft-red text-white font-medium rounded-lg hover:bg-ft-red/90 transition-colors"
+          >
+            Save Article
+          </button>
+          <button
+            type="button"
+            id="cancel-btn"
+            class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Draft Articles -->
+  {draftArticles.length > 0 && (
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-white mb-4">Drafts ({draftArticles.length})</h2>
+      <div class="space-y-4">
+        {draftArticles.map((article) => (
+          <Card variant="glass" hover>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-lg font-semibold text-ft-black">{article.title}</h3>
+                  <Badge variant="warning">Draft</Badge>
+                  <Badge>{article.category}</Badge>
+                </div>
+                {article.excerpt && (
+                  <p class="text-sm text-gray-600 line-clamp-2">{article.excerpt}</p>
+                )}
+                <p class="text-xs text-gray-400 mt-2">
+                  Created: {new Date(article.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <div class="flex gap-2 ml-4">
+                <button
+                  class="edit-btn px-3 py-1 text-sm bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-article={JSON.stringify(article)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="publish-btn px-3 py-1 text-sm bg-green-100 text-green-600 rounded-lg hover:bg-green-600 hover:text-white transition-colors"
+                  data-id={article.id}
+                >
+                  Publish
+                </button>
+                <button
+                  class="delete-btn px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={article.id}
+                  data-title={article.title}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Published Articles -->
+  <div>
+    <h2 class="text-xl font-semibold text-white mb-4">Published ({publishedArticles.length})</h2>
+    {publishedArticles.length === 0 ? (
+      <Card variant="glass">
+        <p class="text-gray-500 text-center py-4">No published articles yet</p>
+      </Card>
+    ) : (
+      <div class="space-y-4">
+        {publishedArticles.map((article) => (
+          <Card variant="glass" hover>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-lg font-semibold text-ft-black">{article.title}</h3>
+                  <Badge variant="success">Published</Badge>
+                  <Badge>{article.category}</Badge>
+                </div>
+                {article.excerpt && (
+                  <p class="text-sm text-gray-600 line-clamp-2">{article.excerpt}</p>
+                )}
+                <p class="text-xs text-gray-400 mt-2">
+                  Published: {article.published_at ? new Date(article.published_at).toLocaleDateString() : 'N/A'}
+                  {article.author_name && ` • By ${article.author_name}`}
+                </p>
+              </div>
+              <div class="flex gap-2 ml-4">
+                <a
+                  href={`/news/${article.slug}`}
+                  target="_blank"
+                  class="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+                >
+                  View
+                </a>
+                <button
+                  class="edit-btn px-3 py-1 text-sm bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-article={JSON.stringify(article)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="unpublish-btn px-3 py-1 text-sm bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-colors"
+                  data-id={article.id}
+                >
+                  Unpublish
+                </button>
+                <button
+                  class="delete-btn px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={article.id}
+                  data-title={article.title}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  const modal = document.getElementById('article-modal') as HTMLDivElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
+  const form = document.getElementById('article-form') as HTMLFormElement;
+  const addBtn = document.getElementById('add-article-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+
+  // Form fields
+  const articleId = document.getElementById('article-id') as HTMLInputElement;
+  const titleField = document.getElementById('title') as HTMLInputElement;
+  const slugField = document.getElementById('slug') as HTMLInputElement;
+  const categoryField = document.getElementById('category') as HTMLSelectElement;
+  const excerptField = document.getElementById('excerpt') as HTMLTextAreaElement;
+  const contentField = document.getElementById('content') as HTMLTextAreaElement;
+  const imageUrlField = document.getElementById('image_url') as HTMLInputElement;
+  const authorNameField = document.getElementById('author_name') as HTMLInputElement;
+  const isPublishedField = document.getElementById('is_published') as HTMLInputElement;
+
+  // Auto-generate slug from title
+  titleField?.addEventListener('input', () => {
+    if (!articleId.value) {
+      slugField.value = titleField.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    }
+  });
+
+  // Open modal for adding
+  addBtn?.addEventListener('click', () => {
+    modalTitle.textContent = 'New Article';
+    form.reset();
+    articleId.value = '';
+    modal.classList.remove('hidden');
+  });
+
+  // Close modal
+  cancelBtn?.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Edit buttons
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const article = JSON.parse((btn as HTMLButtonElement).dataset.article || '{}');
+      modalTitle.textContent = 'Edit Article';
+      articleId.value = article.id;
+      titleField.value = article.title || '';
+      slugField.value = article.slug || '';
+      categoryField.value = article.category || 'News';
+      excerptField.value = article.excerpt || '';
+      contentField.value = article.content || '';
+      imageUrlField.value = article.image_url || '';
+      authorNameField.value = article.author_name || '';
+      isPublishedField.checked = article.is_published || false;
+      modal.classList.remove('hidden');
+    });
+  });
+
+  // Publish buttons
+  document.querySelectorAll('.publish-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+
+      const response = await fetch('/api/admin/news', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_published: true }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to publish article');
+      }
+    });
+  });
+
+  // Unpublish buttons
+  document.querySelectorAll('.unpublish-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+
+      const response = await fetch('/api/admin/news', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_published: false }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to unpublish article');
+      }
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const title = (btn as HTMLButtonElement).dataset.title;
+
+      if (confirm(`Are you sure you want to delete "${title}"?`)) {
+        const response = await fetch(`/api/admin/news?id=${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          alert(data.error || 'Failed to delete article');
+        }
+      }
+    });
+  });
+
+  // Form submission
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const isEdit = !!articleId.value;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const body: Record<string, any> = {
+      title: titleField.value,
+      slug: slugField.value,
+      category: categoryField.value,
+      excerpt: excerptField.value,
+      content: contentField.value,
+      image_url: imageUrlField.value || null,
+      author_name: authorNameField.value || null,
+      is_published: isPublishedField.checked,
+    };
+
+    if (isEdit) {
+      body.id = articleId.value;
+    }
+
+    const response = await fetch('/api/admin/news', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const data = await response.json();
+      alert(data.error || 'Failed to save article');
+    }
+  });
+</script>

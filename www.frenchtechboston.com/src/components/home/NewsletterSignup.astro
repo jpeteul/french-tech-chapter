@@ -1,0 +1,101 @@
+---
+import Container from '../common/Container.astro';
+import Button from '../common/Button.astro';
+
+interface Props {
+  source?: string;
+}
+
+const { source = 'homepage' } = Astro.props;
+---
+
+<section class="bg-gradient-to-r from-ft-red via-rose-600 to-ft-red py-16 sm:py-20 relative overflow-hidden">
+  <!-- Decorative elements -->
+  <div class="absolute top-0 left-0 w-[400px] h-[400px] bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl -translate-y-1/2 -translate-x-1/4"></div>
+  <div class="absolute bottom-0 right-0 w-[300px] h-[300px] bg-gradient-to-tl from-white/10 to-transparent rounded-full blur-3xl translate-y-1/2 translate-x-1/4"></div>
+
+  <Container class="relative">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
+        Stay Connected
+      </h2>
+      <p class="text-white/80 mb-8">
+        Get updates on events, resources, and opportunities from La French Tech Boston.
+      </p>
+
+      <form id="newsletter-form" class="space-y-4 max-w-md mx-auto" data-source={source}>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            name="name"
+            placeholder="Your name (optional)"
+            class="flex-1 px-4 py-3 rounded-xl border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/60 focus:ring-2 focus:ring-white focus:border-white focus:bg-white/20 transition-all duration-300"
+          />
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Your email"
+            class="flex-1 px-4 py-3 rounded-xl border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/60 focus:ring-2 focus:ring-white focus:border-white focus:bg-white/20 transition-all duration-300"
+          />
+        </div>
+        <Button type="submit" variant="secondary" size="md" class="w-full sm:w-auto">
+          Subscribe
+        </Button>
+      </form>
+
+      <p id="newsletter-message" class="mt-4 text-sm text-white/80 hidden"></p>
+    </div>
+  </Container>
+</section>
+
+<script>
+  const form = document.getElementById('newsletter-form') as HTMLFormElement;
+  const message = document.getElementById('newsletter-message') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get('email') as string;
+    const name = formData.get('name') as string;
+    const source = form.dataset.source || 'homepage';
+
+    // Disable submit button while processing
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Subscribing...';
+    }
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name: name || null, source }),
+      });
+
+      const data = await response.json();
+
+      message.textContent = data.message || data.error || 'Thanks for subscribing!';
+      message.classList.remove('hidden');
+
+      if (response.ok) {
+        form.reset();
+        message.classList.remove('text-red-200');
+        message.classList.add('text-white');
+      } else {
+        message.classList.remove('text-white');
+        message.classList.add('text-red-200');
+      }
+    } catch (error) {
+      message.textContent = 'Something went wrong. Please try again.';
+      message.classList.remove('hidden', 'text-white');
+      message.classList.add('text-red-200');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Subscribe';
+      }
+    }
+  });
+</script>

@@ -1,0 +1,191 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let totalMembers = 0;
+let pendingApplications = 0;
+let recentApplications: any[] = [];
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  // Count active members
+  const { count: memberCount } = await supabaseAdmin
+    .from('members')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+  totalMembers = memberCount || 0;
+
+  // Count pending applications
+  const { count: pendingCount } = await supabaseAdmin
+    .from('applications')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+  pendingApplications = pendingCount || 0;
+
+  // Get recent applications
+  const { data: recentApps } = await supabaseAdmin
+    .from('applications')
+    .select('name, email, created_at')
+    .order('created_at', { ascending: false })
+    .limit(5);
+  recentApplications = recentApps || [];
+}
+
+const stats = {
+  totalMembers,
+  pendingApplications,
+  upcomingEvents: 0, // Events table not implemented yet
+};
+---
+
+<AdminLayout title="Admin Dashboard">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
+    <p class="text-white/70 mt-2">
+      Overview of La French Tech Boston community
+    </p>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <Card variant="glass" hover>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-blue-500/25">👥</div>
+        <div>
+          <div class="text-sm text-gray-500">Active Members</div>
+          <div class="text-2xl font-bold text-ft-black">{stats.totalMembers}</div>
+        </div>
+      </div>
+    </Card>
+    <Card variant="glass" hover>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-amber-500/25">📝</div>
+        <div>
+          <div class="text-sm text-gray-500">Pending Applications</div>
+          <div class="text-2xl font-bold text-ft-red">{stats.pendingApplications}</div>
+        </div>
+      </div>
+    </Card>
+    <Card variant="glass" hover>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/25">📅</div>
+        <div>
+          <div class="text-sm text-gray-500">Upcoming Events</div>
+          <div class="text-2xl font-bold text-ft-black">{stats.upcomingEvents}</div>
+        </div>
+      </div>
+    </Card>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <!-- Recent Applications -->
+    <Card variant="glass" hover>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-ft-black">Recent Applications</h2>
+        <a href="/admin/applications" class="text-sm text-ft-red hover:underline">
+          View all
+        </a>
+      </div>
+      <div class="space-y-3">
+        {recentApplications.length === 0 ? (
+          <p class="text-gray-500 text-sm py-4 text-center">No recent applications</p>
+        ) : (
+          recentApplications.map((app) => (
+            <div class="flex justify-between items-center py-2 border-b border-gray-100/50 last:border-0">
+              <div>
+                <div class="font-medium text-ft-black">{app.name}</div>
+                <div class="text-sm text-gray-500">{app.email}</div>
+              </div>
+              <div class="text-sm text-gray-400">
+                {new Date(app.created_at).toLocaleDateString()}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </Card>
+
+    <!-- Quick Actions -->
+    <Card variant="glass" hover>
+      <h2 class="text-lg font-semibold text-ft-black mb-4">Quick Actions</h2>
+      <div class="space-y-3">
+        <a
+          href="/admin/applications"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-amber-500/25">📝</div>
+          <div>
+            <div class="font-medium text-ft-black">Review Applications</div>
+            <div class="text-sm text-gray-500">
+              {stats.pendingApplications} pending review
+            </div>
+          </div>
+        </a>
+        <a
+          href="/admin/members"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-blue-500/25">👥</div>
+          <div>
+            <div class="font-medium text-ft-black">Manage Members</div>
+            <div class="text-sm text-gray-500">Edit or deactivate members</div>
+          </div>
+        </a>
+        <a
+          href="/admin/events"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-emerald-500/25">📅</div>
+          <div>
+            <div class="font-medium text-ft-black">Manage Events</div>
+            <div class="text-sm text-gray-500">Create and edit events</div>
+          </div>
+        </a>
+        <a
+          href="/admin/resources"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-purple-500/25">📚</div>
+          <div>
+            <div class="font-medium text-ft-black">Manage Resources</div>
+            <div class="text-sm text-gray-500">Add guides, articles, and files</div>
+          </div>
+        </a>
+        <a
+          href="/admin/event-photos"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-cyan-500/25">📷</div>
+          <div>
+            <div class="font-medium text-ft-black">Event Photos</div>
+            <div class="text-sm text-gray-500">Manage the events gallery</div>
+          </div>
+        </a>
+        <a
+          href="/admin/settings"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-slate-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-gray-500/25">⚙️</div>
+          <div>
+            <div class="font-medium text-ft-black">Site Settings</div>
+            <div class="text-sm text-gray-500">WhatsApp link and more</div>
+          </div>
+        </a>
+        <a
+          href="/admin/newsletter"
+          class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300"
+        >
+          <div class="w-10 h-10 bg-gradient-to-br from-rose-400 to-red-500 rounded-lg flex items-center justify-center text-lg shadow-lg shadow-rose-500/25">📧</div>
+          <div>
+            <div class="font-medium text-ft-black">Send Newsletter</div>
+            <div class="text-sm text-gray-500">Email all members</div>
+          </div>
+        </a>
+      </div>
+    </Card>
+  </div>
+</AdminLayout>

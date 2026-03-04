@@ -1,0 +1,338 @@
+---
+import MembersLayout from '../../layouts/MembersLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+import { getMember } from '../../lib/auth';
+
+export const prerender = false;
+
+const currentMember = await getMember(Astro.cookies, Astro.locals.runtime, Astro.request);
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+let sentRequests: any[] = [];
+let receivedRequests: any[] = [];
+
+if (supabaseAdmin && currentMember) {
+  // Fetch sent requests
+  const { data: sentData } = await supabaseAdmin
+    .from('connection_requests')
+    .select(`
+      id,
+      message,
+      status,
+      response_message,
+      created_at,
+      responded_at,
+      receiver:receiver_id (id, name, company, role, email, linkedin)
+    `)
+    .eq('requester_id', currentMember.id)
+    .order('created_at', { ascending: false });
+
+  sentRequests = sentData || [];
+
+  // Fetch received requests
+  const { data: receivedData } = await supabaseAdmin
+    .from('connection_requests')
+    .select(`
+      id,
+      message,
+      status,
+      response_message,
+      created_at,
+      responded_at,
+      requester:requester_id (id, name, company, role, email, linkedin)
+    `)
+    .eq('receiver_id', currentMember.id)
+    .order('created_at', { ascending: false });
+
+  receivedRequests = receivedData || [];
+}
+
+const pendingReceived = receivedRequests.filter(r => r.status === 'pending');
+const acceptedConnections = [
+  ...sentRequests.filter(r => r.status === 'accepted'),
+  ...receivedRequests.filter(r => r.status === 'accepted'),
+];
+const pendingSent = sentRequests.filter(r => r.status === 'pending');
+
+const getInitials = (name: string) => {
+  return name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+};
+---
+
+<MembersLayout title="My Connections">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">My Connections</h1>
+    <p class="text-white/70 mt-2">
+      Manage your connection requests and contacts
+    </p>
+  </div>
+
+  <!-- Pending Requests Section -->
+  {pendingReceived.length > 0 && (
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+        Pending Requests
+        <Badge variant="warning">{pendingReceived.length}</Badge>
+      </h2>
+      <div class="space-y-4">
+        {pendingReceived.map((request) => (
+          <Card variant="glass" hover>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white font-semibold shadow-lg shadow-amber-500/25">
+                  {getInitials(request.requester?.name)}
+                </div>
+                <div>
+                  <h3 class="font-medium text-ft-black">{request.requester?.name}</h3>
+                  <p class="text-sm text-gray-500">
+                    {request.requester?.role}{request.requester?.company ? ` at ${request.requester.company}` : ''}
+                  </p>
+                  {request.message && (
+                    <p class="text-sm text-gray-600 mt-1 italic bg-white/40 rounded-lg px-2 py-1">"{request.message}"</p>
+                  )}
+                </div>
+              </div>
+              <div class="flex gap-2 sm:flex-shrink-0">
+                <button
+                  class="accept-btn px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 shadow-lg shadow-green-600/25 transition-all"
+                  data-request-id={request.id}
+                  data-requester-name={request.requester?.name}
+                >
+                  Accept
+                </button>
+                <button
+                  class="decline-btn px-4 py-2 bg-white/60 backdrop-blur text-gray-700 text-sm font-medium rounded-xl hover:bg-white/80 transition-all"
+                  data-request-id={request.id}
+                >
+                  Decline
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Accepted Connections -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-white mb-4">
+      My Connections ({acceptedConnections.length})
+    </h2>
+    {acceptedConnections.length === 0 ? (
+      <Card variant="glass">
+        <div class="text-center py-8 text-gray-500">
+          <p>No connections yet.</p>
+          <a href="/members/directory" class="text-ft-red hover:underline mt-2 inline-block">
+            Browse the directory to connect with other members
+          </a>
+        </div>
+      </Card>
+    ) : (
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {acceptedConnections.map((connection) => {
+          const person = connection.receiver || connection.requester;
+          return (
+            <Card variant="glass" hover>
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-gray-600 font-semibold text-sm shadow-inner">
+                  {getInitials(person?.name)}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-medium text-ft-black truncate">{person?.name}</h3>
+                  <p class="text-sm text-gray-500 truncate">
+                    {person?.role}{person?.company ? ` at ${person.company}` : ''}
+                  </p>
+                </div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-white/40 space-y-1">
+                {person?.email && (
+                  <a href={`mailto:${person.email}`} class="block text-sm text-ft-red hover:underline truncate">
+                    {person.email}
+                  </a>
+                )}
+                {person?.linkedin && (
+                  <a
+                    href={`https://linkedin.com/in/${person.linkedin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 text-sm text-ft-red hover:underline"
+                  >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                    LinkedIn
+                  </a>
+                )}
+                {connection.response_message && (
+                  <div class="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="text-xs text-green-800 italic">"{connection.response_message}"</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    )}
+  </div>
+
+  <!-- Pending Sent Requests -->
+  {pendingSent.length > 0 && (
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-white mb-4">
+        Pending Sent Requests ({pendingSent.length})
+      </h2>
+      <div class="space-y-3">
+        {pendingSent.map((request) => (
+          <Card variant="glass">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-gray-600 font-semibold text-sm shadow-inner">
+                {getInitials(request.receiver?.name)}
+              </div>
+              <div class="flex-1">
+                <h3 class="font-medium text-ft-black">{request.receiver?.name}</h3>
+                <p class="text-sm text-gray-500">
+                  {request.receiver?.role}{request.receiver?.company ? ` at ${request.receiver.company}` : ''}
+                </p>
+              </div>
+              <Badge variant="warning">Pending</Badge>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )}
+</MembersLayout>
+
+<!-- Accept Modal -->
+<div id="accept-modal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="backdrop-blur-2xl bg-white/90 rounded-2xl shadow-2xl shadow-black/20 border border-white/50 max-w-md w-full p-6">
+    <h2 class="text-xl font-bold text-ft-black mb-4">Accept Connection</h2>
+    <p class="text-gray-600 mb-4">
+      You're about to connect with <strong id="accept-name"></strong>. They'll receive your contact information.
+    </p>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-ft-black mb-1">
+        Add a message (optional)
+      </label>
+      <textarea
+        id="response-message"
+        placeholder="e.g., Feel free to reach out on LinkedIn or email me directly!"
+        rows="3"
+        class="w-full px-3 py-2 bg-white/60 backdrop-blur border border-white/40 rounded-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none text-sm shadow-sm"
+      ></textarea>
+    </div>
+    <p id="accept-error" class="text-sm text-red-600 mb-4 hidden"></p>
+    <div class="flex justify-end gap-3">
+      <button id="cancel-accept" class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-white/60 rounded-xl transition-colors">
+        Cancel
+      </button>
+      <button id="confirm-accept" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-xl hover:bg-green-700 shadow-lg shadow-green-600/25 transition-all">
+        Accept & Share Contact
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const acceptModal = document.getElementById('accept-modal')!;
+  const acceptNameEl = document.getElementById('accept-name')!;
+  const responseMessageEl = document.getElementById('response-message') as HTMLTextAreaElement;
+  const cancelAcceptBtn = document.getElementById('cancel-accept')!;
+  const confirmAcceptBtn = document.getElementById('confirm-accept')!;
+  const acceptError = document.getElementById('accept-error')!;
+
+  let currentRequestId: string | null = null;
+
+  // Accept buttons
+  document.querySelectorAll('.accept-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const requestId = (btn as HTMLElement).dataset.requestId!;
+      const requesterName = (btn as HTMLElement).dataset.requesterName!;
+      currentRequestId = requestId;
+      acceptNameEl.textContent = requesterName;
+      responseMessageEl.value = '';
+      acceptError.classList.add('hidden');
+      acceptModal.classList.remove('hidden');
+    });
+  });
+
+  // Cancel accept
+  cancelAcceptBtn.addEventListener('click', () => {
+    acceptModal.classList.add('hidden');
+    currentRequestId = null;
+  });
+
+  // Click outside modal
+  acceptModal.addEventListener('click', (e) => {
+    if (e.target === acceptModal) {
+      acceptModal.classList.add('hidden');
+      currentRequestId = null;
+    }
+  });
+
+  // Confirm accept
+  confirmAcceptBtn.addEventListener('click', async () => {
+    if (!currentRequestId) return;
+
+    confirmAcceptBtn.textContent = 'Accepting...';
+    (confirmAcceptBtn as HTMLButtonElement).disabled = true;
+
+    try {
+      const response = await fetch('/api/connections', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request_id: currentRequestId,
+          status: 'accepted',
+          response_message: responseMessageEl.value || null,
+        }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        acceptError.textContent = data.error || 'Failed to accept request';
+        acceptError.classList.remove('hidden');
+      }
+    } catch (err) {
+      acceptError.textContent = 'Something went wrong';
+      acceptError.classList.remove('hidden');
+    } finally {
+      confirmAcceptBtn.textContent = 'Accept & Share Contact';
+      (confirmAcceptBtn as HTMLButtonElement).disabled = false;
+    }
+  });
+
+  // Decline buttons
+  document.querySelectorAll('.decline-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to decline this request?')) return;
+
+      const requestId = (btn as HTMLElement).dataset.requestId!;
+
+      try {
+        const response = await fetch('/api/connections', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            request_id: requestId,
+            status: 'declined',
+          }),
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to decline request');
+        }
+      } catch (err) {
+        alert('Something went wrong');
+      }
+    });
+  });
+</script>

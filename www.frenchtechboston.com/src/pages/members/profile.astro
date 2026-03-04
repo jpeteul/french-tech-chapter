@@ -1,0 +1,192 @@
+---
+import MembersLayout from '../../layouts/MembersLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Button from '../../components/common/Button.astro';
+import { getMember } from '../../lib/auth';
+
+export const prerender = false;
+
+const member = await getMember(Astro.cookies, Astro.locals.runtime, Astro.request);
+---
+
+<MembersLayout title="Edit Profile">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Edit Profile</h1>
+    <p class="text-white/70 mt-2">
+      Update your member profile information
+    </p>
+  </div>
+
+  <div class="max-w-2xl">
+    <Card variant="glass">
+      <form id="profile-form" class="space-y-6">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="name" class="block text-sm font-medium text-ft-black mb-1">
+              Full Name *
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              value={member?.name || ''}
+              class="w-full px-4 py-3 bg-white/60 backdrop-blur border border-white/40 rounded-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red shadow-sm"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-ft-black mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              disabled
+              value={member?.email || ''}
+              class="w-full px-4 py-3 bg-gray-100/60 backdrop-blur border border-white/40 rounded-xl text-gray-500"
+            />
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="company" class="block text-sm font-medium text-ft-black mb-1">
+              Company
+            </label>
+            <input
+              type="text"
+              id="company"
+              name="company"
+              value={member?.company || ''}
+              class="w-full px-4 py-3 bg-white/60 backdrop-blur border border-white/40 rounded-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red shadow-sm"
+            />
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-medium text-ft-black mb-1">
+              Role/Title
+            </label>
+            <input
+              type="text"
+              id="role"
+              name="role"
+              value={member?.role || ''}
+              class="w-full px-4 py-3 bg-white/60 backdrop-blur border border-white/40 rounded-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red shadow-sm"
+            />
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="linkedin" class="block text-sm font-medium text-ft-black mb-1">
+              LinkedIn Username
+            </label>
+            <div class="flex">
+              <span class="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-100/60 backdrop-blur border border-r-0 border-white/40 rounded-l-xl">
+                linkedin.com/in/
+              </span>
+              <input
+                type="text"
+                id="linkedin"
+                name="linkedin"
+                value={member?.linkedin || ''}
+                class="flex-1 px-4 py-3 bg-white/60 backdrop-blur border border-white/40 rounded-r-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red shadow-sm"
+                placeholder="username"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="industry" class="block text-sm font-medium text-ft-black mb-1">
+              Industry
+            </label>
+            <select
+              id="industry"
+              name="industry"
+              class="w-full px-4 py-3 bg-white/60 backdrop-blur border border-white/40 rounded-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red shadow-sm"
+            >
+              <option value="">Select an industry</option>
+              <option value="SaaS" selected={member?.industry === 'SaaS'}>SaaS</option>
+              <option value="Fintech" selected={member?.industry === 'Fintech'}>Fintech</option>
+              <option value="Healthcare" selected={member?.industry === 'Healthcare'}>Healthcare</option>
+              <option value="Biotech" selected={member?.industry === 'Biotech'}>Biotech</option>
+              <option value="AI/ML" selected={member?.industry === 'AI/ML'}>AI/ML</option>
+              <option value="CleanTech" selected={member?.industry === 'CleanTech'}>CleanTech</option>
+              <option value="Data" selected={member?.industry === 'Data'}>Data</option>
+              <option value="Cybersecurity" selected={member?.industry === 'Cybersecurity'}>Cybersecurity</option>
+              <option value="E-commerce" selected={member?.industry === 'E-commerce'}>E-commerce</option>
+              <option value="Other" selected={member?.industry === 'Other'}>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="bio" class="block text-sm font-medium text-ft-black mb-1">
+            Bio
+          </label>
+          <textarea
+            id="bio"
+            name="bio"
+            rows="4"
+            class="w-full px-4 py-3 bg-white/60 backdrop-blur border border-white/40 rounded-xl focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none shadow-sm"
+            placeholder="Tell other members about yourself..."
+          >{member?.bio || ''}</textarea>
+          <p class="mt-1 text-sm text-gray-500">Brief description visible to other members</p>
+        </div>
+
+        <div class="flex justify-end gap-4">
+          <Button href="/members" variant="ghost">
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary">
+            Save Changes
+          </Button>
+        </div>
+
+        <p id="form-message" class="text-sm text-center hidden"></p>
+      </form>
+    </Card>
+  </div>
+</MembersLayout>
+
+<script>
+  const form = document.getElementById('profile-form') as HTMLFormElement;
+  const message = document.getElementById('form-message') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/api/members/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.get('name'),
+          company: formData.get('company'),
+          role: formData.get('role'),
+          linkedin: formData.get('linkedin'),
+          industry: formData.get('industry'),
+          bio: formData.get('bio'),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        message.textContent = 'Profile updated successfully!';
+        message.className = 'text-sm text-center text-green-600';
+      } else {
+        message.textContent = data.error || 'Failed to update profile.';
+        message.className = 'text-sm text-center text-red-600';
+      }
+      message.classList.remove('hidden');
+    } catch (error) {
+      message.textContent = 'Something went wrong. Please try again.';
+      message.className = 'text-sm text-center text-red-600';
+      message.classList.remove('hidden');
+    }
+  });
+</script>

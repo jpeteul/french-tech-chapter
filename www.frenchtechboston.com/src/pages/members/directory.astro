@@ -1,0 +1,75 @@
+---
+import MembersLayout from '../../layouts/MembersLayout.astro';
+import MemberDirectory from '../../components/members/MemberDirectory';
+import { getSupabaseAdmin } from '../../lib/supabase';
+import { getMember } from '../../lib/auth';
+
+export const prerender = false;
+
+const currentMember = await getMember(Astro.cookies, Astro.locals.runtime, Astro.request);
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+let members: any[] = [];
+let sentRequests: any[] = [];
+let receivedRequests: any[] = [];
+
+if (supabaseAdmin && currentMember) {
+  // Fetch all active members using admin client to bypass RLS
+  const { data: membersData } = await supabaseAdmin
+    .from('members')
+    .select('id, name, company, role, linkedin, email, industry, bio')
+    .eq('status', 'active')
+    .order('name');
+
+  members = membersData || [];
+
+  // Fetch connection requests sent by current user
+  const { data: sentData } = await supabaseAdmin
+    .from('connection_requests')
+    .select(`
+      id,
+      receiver_id,
+      message,
+      status,
+      response_message,
+      created_at,
+      receiver:receiver_id (id, name, company, role, email, linkedin)
+    `)
+    .eq('requester_id', currentMember.id);
+
+  sentRequests = sentData || [];
+
+  // Fetch connection requests received by current user
+  const { data: receivedData } = await supabaseAdmin
+    .from('connection_requests')
+    .select(`
+      id,
+      requester_id,
+      message,
+      status,
+      response_message,
+      created_at,
+      requester:requester_id (id, name, company, role, email, linkedin)
+    `)
+    .eq('receiver_id', currentMember.id);
+
+  receivedRequests = receivedData || [];
+}
+---
+
+<MembersLayout title="Member Directory">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Member Directory</h1>
+    <p class="text-white/70 mt-2">
+      Connect with fellow French tech professionals in Boston
+    </p>
+  </div>
+
+  <MemberDirectory
+    members={members}
+    currentMemberId={currentMember?.id || ''}
+    sentRequests={sentRequests}
+    receivedRequests={receivedRequests}
+    client:load
+  />
+</MembersLayout>

@@ -1,0 +1,137 @@
+---
+import '../styles/global.css';
+import { SITE_TITLE, SITE_DESCRIPTION, SOCIAL_LINKS, CONTACT_EMAIL } from '../lib/constants';
+import { CHAPTER } from '../lib/chapter-config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  image,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
+const pageDescription = description || SITE_DESCRIPTION;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || CHAPTER.websiteUrl);
+const ogImage = image || '/images/og-image.jpg';
+const ogImageURL = new URL(ogImage, Astro.site || CHAPTER.websiteUrl).toString();
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
+    <title>{pageTitle}</title>
+    <meta name="title" content={pageTitle} />
+    <meta name="description" content={pageDescription} />
+    <meta name="author" content={CHAPTER.name} />
+    <meta name="theme-color" content="#1C1B3A" />
+
+    <!-- Robots -->
+    {noindex ? (
+      <meta name="robots" content="noindex, nofollow" />
+    ) : (
+      <meta name="robots" content="index, follow" />
+    )}
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:locale" content="en_US" />
+
+    {type === 'article' && publishedTime && (
+      <meta property="article:published_time" content={publishedTime} />
+    )}
+    {type === 'article' && modifiedTime && (
+      <meta property="article:modified_time" content={modifiedTime} />
+    )}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImageURL} />
+    {CHAPTER.twitterHandle && (
+      <meta name="twitter:site" content={`@${CHAPTER.twitterHandle}`} />
+    )}
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": CHAPTER.name,
+      "description": SITE_DESCRIPTION,
+      "url": CHAPTER.websiteUrl,
+      "logo": `${CHAPTER.websiteUrl}/images/logo.png`,
+      "sameAs": [
+        SOCIAL_LINKS.linkedin,
+        SOCIAL_LINKS.twitter
+      ].filter(Boolean),
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": CONTACT_EMAIL,
+        "contactType": "customer service"
+      },
+      ...(CHAPTER.address && {
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": CHAPTER.address.locality,
+          "addressRegion": CHAPTER.address.region,
+          "addressCountry": CHAPTER.address.country
+        }
+      })
+    })} />
+
+    {type === 'website' && Astro.url.pathname === '/' && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": SITE_TITLE,
+        "url": CHAPTER.websiteUrl,
+        "description": SITE_DESCRIPTION,
+        "publisher": {
+          "@type": "Organization",
+          "name": CHAPTER.name
+        }
+      })} />
+    )}
+  </head>
+  <body class="min-h-screen bg-ft-white text-ft-black">
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 50">
+  <!-- Origami rooster icon -->
+  <g transform="translate(2,5) scale(0.55)">
+    <polygon points="35,2 45,18 38,18 50,38 42,38 55,60 20,60 28,38 20,38 32,18 25,18" fill="#E1000F"/>
+    <polygon points="42,8 50,5 47,14" fill="#E1000F" opacity="0.7"/>
+    <polygon points="35,2 42,18 35,18 42,38 35,38 42,60 28,60 32,38 28,38 35,18 28,18" fill="#C5000D"/>
+  </g>
+  <!-- Text -->
+  <text x="45" y="24" fill="#1C1B3A" font-family="'Gotham', 'Inter', Arial, sans-serif" font-weight="300" font-size="13" letter-spacing="0.5">La French Tech</text>
+  <text x="45" y="40" fill="#E1000F" font-family="'Gotham', 'Inter', Arial, sans-serif" font-weight="800" font-size="13" letter-spacing="1">BOSTON</text>
+</svg>

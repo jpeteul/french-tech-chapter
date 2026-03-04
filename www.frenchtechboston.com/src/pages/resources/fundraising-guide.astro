@@ -1,0 +1,594 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+
+export const prerender = false;
+
+const sections = [
+  { id: 'introduction', label: 'Introduction' },
+  { id: 'phase-0', label: 'Phase 0: Preparation' },
+  { id: 'phase-1', label: 'Phase 1: Outreach' },
+  { id: 'phase-2', label: 'Phase 2: Due Diligence' },
+  { id: 'phase-3', label: 'Phase 3: Closing' },
+  { id: 'final-thoughts', label: 'Final Thoughts' },
+];
+---
+
+<PublicLayout title="The Founder's Guide to a Successful Fundraise" description="A practical playbook covering everything from preparation to closing, helping you navigate the fundraising process with confidence.">
+  <!-- Hero Section -->
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <a href="/resources" class="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Resources
+        </a>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          The Founder's Guide to a Successful Fundraise
+        </h1>
+        <p class="text-xl text-white/70 mb-6">
+          A practical playbook covering everything from preparation to closing, helping you navigate the fundraising process with confidence.
+        </p>
+        <div class="flex items-center gap-4 text-sm text-white/50">
+          <span>20 min read</span>
+          <span>•</span>
+          <span>Updated February 2026</span>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Content Section -->
+  <section class="bg-white py-16">
+    <Container>
+      <div class="flex flex-col lg:flex-row gap-12">
+        <!-- Sidebar Navigation -->
+        <aside class="lg:w-72 flex-shrink-0">
+          <div class="lg:sticky lg:top-8">
+            <nav class="space-y-1 mb-8">
+              {sections.map((section) => (
+                <a
+                  href={`#${section.id}`}
+                  class="nav-link block px-4 py-2 text-gray-600 hover:text-ft-navy hover:bg-gray-50 rounded-lg transition-colors border-l-4 border-transparent"
+                  data-section={section.id}
+                >
+                  {section.label}
+                </a>
+              ))}
+            </nav>
+            <div class="border-t border-gray-200 pt-6">
+              <p class="text-sm text-gray-600 mb-4">Want to connect with investors?</p>
+              <a
+                href="/apply"
+                class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-ft-red text-white rounded-xl hover:bg-ft-red/90 transition-colors font-medium"
+              >
+                Join La French Tech Boston
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content -->
+        <article class="flex-1 max-w-3xl">
+          <!-- Introduction -->
+          <section id="introduction" class="scroll-mt-8 mb-16">
+            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+              Raising capital is one of the most challenging yet transformative experiences a founder can have. It's not simply about convincing someone to write a check. It's about finding true partners who believe in your vision and can help you build something extraordinary.
+            </p>
+            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+              This guide distills lessons from hundreds of successful fundraises. Whether you're raising your first pre-seed round or navigating a Series B, the fundamentals remain remarkably consistent: preparation beats improvisation, relationships matter more than pitch decks, and the details of due diligence can make or break a deal.
+            </p>
+            <p class="text-lg text-gray-700 leading-relaxed">
+              We've organized this guide into four phases that mirror the natural progression of a fundraise. Each phase builds on the previous one, and skipping steps almost always comes back to haunt founders later.
+            </p>
+          </section>
+
+          <!-- Phase 0: Preparation -->
+          <section id="phase-0" class="scroll-mt-8 mb-16">
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 text-sm font-medium text-ft-navy bg-ft-navy/10 rounded-full mb-4">Phase 0</span>
+              <h2 class="text-3xl font-bold text-ft-black mb-4">Preparation</h2>
+              <p class="text-lg text-gray-500 italic">
+                The work that happens before you send your first email often determines whether your raise takes six weeks or six months.
+              </p>
+            </div>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Understanding the Sell-By Date</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Here's a truth most founders learn the hard way: fundraising has a shelf life. The moment you tell investors "we're raising," a clock starts ticking. A round that's still open after three months starts to feel stale. After four months, investors wonder what's wrong. The deal becomes harder, not easier, as time passes.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              This is why the best founders don't announce they're raising, at least not at first. Instead, they take the "stealth approach." When meeting investors early, frame it as: "We're not raising right now. We're meeting people ahead of a future raise to understand the landscape and build relationships."
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              This framing works because it removes pressure from both sides. Investors can engage without feeling like they're being sold to. You can learn what they care about, refine your story, and identify who's genuinely interested, all without starting the countdown clock. When you eventually do announce your raise, you'll have warm relationships and a polished pitch.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Timing Windows</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Fundraising is seasonal. August is a graveyard, half of venture is on vacation. Late December through early January is equally dead. Trying to close a round during these windows is like pushing a boulder uphill.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              The best windows are January through March and September through November. Partners are back from vacation, partnerships are meeting regularly, and funds are actively deploying. Time your process to run primarily within these windows.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Know Your Numbers Cold</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Nothing undermines investor confidence faster than a founder who fumbles basic questions about their business. You should be able to discuss your key metrics, revenue, growth rate, burn, runway, unit economics, without hesitation. But knowing the numbers is just the start. You need to understand the story they tell.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Have your financial model ready. Don't share it proactively, most investors don't want to wade through your spreadsheet, but be able to discuss the assumptions verbally. When an investor asks "What does your path to profitability look like?" you need a crisp answer that demonstrates you've thought it through.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">The Two Decks</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Here's a distinction most founders miss: you need two different presentations. The first is a 6-slide "corporate overview", a conversation starter, not a pitch deck. It covers: the problem, your solution, the market, the product, the team, and the vision. Notice what's missing: no traction slides, no financials, no ask. This deck is for early relationship-building conversations when you're not officially raising.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              The second is your full pitch deck, 12-15 slides that include traction, financials, use of funds, and the ask. This only comes out in Phase 1 when you're actively raising. Mixing these up signals inexperience. Sending a full pitch deck to an investor you're "just getting to know" makes you look desperate.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Under-Promise, Over-Deliver</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Between conversations with investors, you'll send updates. These updates are opportunities to build credibility, or destroy it. The key is setting expectations you can beat.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Don't say "We're going to triple revenue this quarter." Say "Our goal is to sign one enterprise client." Then, in your next update: "We signed two." This pattern, modest targets, exceeded results, builds a reputation for execution. Over time, investors learn that when you say you'll do something, it happens.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Build Your Pipeline</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Not all investors are right for your company. The goal isn't to pitch as many investors as possible. It's to pitch the right investors who are genuinely aligned with what you're building.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Build a pipeline of 40-60 investors total. From this, identify 15-20 "high conviction" targets, funds that have invested in your space, partners who've written about your problem, firms where you have warm connections. Research which funds have invested in your space before. Look at their portfolio companies, are there synergies or conflicts?
+            </p>
+
+            <!-- Do/Don't Box -->
+            <div class="mt-8 bg-gray-50 rounded-2xl p-6">
+              <h4 class="font-semibold text-ft-black mb-4">Preparation Dos and Don'ts</h4>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="text-green-600 font-medium mb-3">DO</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Use the "not raising yet" framing for early meetings
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Have your financial model ready to discuss verbally
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Build a pipeline of 40-60 investors with 15-20 high-conviction targets
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Time your raise for Jan-Mar or Sep-Nov
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 class="text-red-600 font-medium mb-3">DON'T</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Start pitching in August or late December
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Send your full pitch deck in relationship-building meetings
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Over-promise on milestones you might miss
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Announce "we're raising" before relationships are warm
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Phase 1: Outreach -->
+          <section id="phase-1" class="scroll-mt-8 mb-16">
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 text-sm font-medium text-ft-navy bg-ft-navy/10 rounded-full mb-4">Phase 1</span>
+              <h2 class="text-3xl font-bold text-ft-black mb-4">Outreach</h2>
+              <p class="text-lg text-gray-500 italic">
+                Getting the first meeting is often the hardest part. This phase is about creating momentum and managing the psychology of fundraising.
+              </p>
+            </div>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">The Warm Introduction Game</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Cold emails to investors work about 2% of the time. Warm introductions work about 30% of the time. This single statistic should shape your entire outreach strategy.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Start by mapping your network. Which of your existing investors, advisors, or friends know the partners you want to meet? LinkedIn can reveal surprising connections. When asking for introductions, make it easy for the connector. Write a forwardable email that explains who you are, what you're building, and why you specifically want to meet this investor.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Information as Leverage</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Here's a counterintuitive principle: don't trade all your information for engagement. Founders often make the mistake of sending everything upfront, full deck, financial model, customer list, hoping to prove they're worth meeting. This backfires.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Instead, release information in stages. The initial email gets a teaser. The first meeting gets the overview deck. The second meeting gets the full pitch deck. Due diligence gets the financial model and data room. This staged approach creates scarcity and gives investors reasons to keep engaging. Each meeting earns them access to more information.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Running a Tight Process</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Fundraising has a momentum dynamic. When investors sense that a deal is competitive, they move faster and pay closer attention. When a deal feels stale, it's hard to generate urgency.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Run a tight, time-boxed process. Schedule first meetings in a compressed 2-3 week window. This naturally creates competition. Investors know that if they wait too long, someone else might move first. Start with investors you're less excited about to practice your pitch and generate early momentum. As you get better and generate initial interest, move to your top targets.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Back-Channeling Is Standard</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Expect that investors will talk to people about you, your customers, former employees, other founders who know you, without telling you. This isn't sneaky; it's standard practice. They're doing reference checks before they invest weeks of time.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              The implication: prep your references. Let key customers and trusted former colleagues know you're raising and that investors might reach out. Brief them on what investors are looking for. Don't be surprised when it happens. Be prepared.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Verbal Commitments Mean Nothing</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              "We're in." "We're going to do this." "You can count on us." These phrases mean nothing until there's a signed term sheet. Founders get burned constantly by verbal commitments that evaporate.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Never stop your process for a verbal commitment. Keep taking meetings. Keep building relationships. Only slow down when you have a signed term sheet in hand. Even then, don't fully stop until you have exclusivity formally granted.
+            </p>
+
+            <!-- Do/Don't Box -->
+            <div class="mt-8 bg-gray-50 rounded-2xl p-6">
+              <h4 class="font-semibold text-ft-black mb-4">Outreach Dos and Don'ts</h4>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="text-green-600 font-medium mb-3">DO</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Prioritize warm introductions over cold outreach
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Release information in stages to maintain leverage
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Warn your references that back-channel calls may happen
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Keep your process running until you have a signed term sheet
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 class="text-red-600 font-medium mb-3">DON'T</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Send your full deck and financials upfront
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Stop taking meetings for verbal commitments
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Pitch your dream investors first as practice
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Let meetings drag on without clear next steps
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Phase 2: Due Diligence -->
+          <section id="phase-2" class="scroll-mt-8 mb-16">
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 text-sm font-medium text-ft-navy bg-ft-navy/10 rounded-full mb-4">Phase 2</span>
+              <h2 class="text-3xl font-bold text-ft-black mb-4">Due Diligence</h2>
+              <p class="text-lg text-gray-500 italic">
+                Once an investor is seriously interested, they'll want to verify everything you've claimed. This is where deals are won or lost.
+              </p>
+            </div>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">The Mindset Shift</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Due diligence requires a different mindset than pitching. In outreach, you're selling, creating excitement, demonstrating vision, building momentum. In due diligence, you're defending, answering hard questions, providing evidence, not raising red flags.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              The goal isn't to wow investors anymore. The goal is to not give them reasons to walk away. Every piece of missing information, every delayed response, every inconsistency between what you said and what the documents show: these are red flags that can kill a deal.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Corporate Hygiene</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Before you raise, get your corporate house in order. If you're not already a Delaware C-Corp, strongly consider converting. It's the standard structure investors expect. If you're a European founder, many US VCs will require a US holding company (often a Delaware C-Corp with the operating company as a subsidiary).
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Common issues that slow down or kill deals: missing 83(b) elections, unclear IP assignment, messy cap tables, undocumented verbal agreements with co-founders. Fix these before you start.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Create Your Own Narrative Documents</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Don't just dump files into a folder. Create narrative documents that guide investors through the information. A GTM (go-to-market) document explaining your sales strategy. A traction document with your key metrics and the story behind them. A unit economics explainer breaking down CAC, LTV, and payback period.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              These documents do two things: they make investors' jobs easier (which speeds up diligence), and they let you control the narrative around potentially tricky numbers instead of letting investors draw their own conclusions.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">The DDQ as a Secret Weapon</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Create a Due Diligence Questionnaire (DDQ) before investors ask for one. This is a document with 30-50 pre-answered questions covering financials, legal, team, customers, technology, and operations.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              When an investor starts diligence and you immediately send them a comprehensive DDQ, two things happen. First, you demonstrate professionalism and preparedness. Second, you control the framing of sensitive topics. You explain the co-founder departure, the customer churn spike, the legal issue, in your own words before they discover it themselves.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Your Data Room Is Your Secret Weapon</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              A well-organized data room signals professionalism and preparedness. A messy one raises immediate red flags. When investors request documents and get them within hours, organized, complete, and easy to navigate, it builds enormous confidence.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Why a proper data room beats emailing zip files: version control (always the latest documents), access tracking (know who's viewing what), audit trail (see engagement patterns), and professionalism (signals you've done this before).
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Exclusivity Period</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Once a lead investor is ready to move forward, they'll ask for exclusivity, a period where you agree not to talk to other investors while they finalize diligence and legal docs. Typical exclusivity periods are 30-60 days.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Negotiate this down if you can. Aim for 30 days or less. And critically: don't stop talking to other investors until exclusivity is formally granted in writing. Verbal "we're moving to term sheet" is not exclusivity. Until you sign something, keep your options open.
+            </p>
+
+            <!-- Do/Don't Box -->
+            <div class="mt-8 bg-gray-50 rounded-2xl p-6">
+              <h4 class="font-semibold text-ft-black mb-4">Due Diligence Dos and Don'ts</h4>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="text-green-600 font-medium mb-3">DO</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Create a DDQ before investors ask for one
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Build narrative documents (GTM doc, traction doc, unit economics)
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Use a proper data room with access tracking
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Respond to requests within 24-48 hours
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 class="text-red-600 font-medium mb-3">DON'T</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Just dump files without narrative context
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Grant exclusivity before it's formally in writing
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Hide information hoping it won't be discovered
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Email zip files instead of using a data room
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Phase 3: Closing -->
+          <section id="phase-3" class="scroll-mt-8 mb-16">
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 text-sm font-medium text-ft-navy bg-ft-navy/10 rounded-full mb-4">Phase 3</span>
+              <h2 class="text-3xl font-bold text-ft-black mb-4">Closing</h2>
+              <p class="text-lg text-gray-500 italic">
+                You have a term sheet. The finish line is in sight. But more deals fall apart between term sheet and close than founders expect.
+              </p>
+            </div>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Budget Time for Legal</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              First-time founders consistently underestimate how long the legal process takes. Budget 3-6 weeks from signed term sheet to wire. Complex deals or inexperienced lawyers can push this to 8+ weeks.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Hire venture-specific counsel, not a generalist business lawyer. A lawyer who has done dozens of venture financings will know what's standard, what's negotiable, and what's a red flag. A generalist will spend your money learning on the job and may fight battles that don't matter while missing issues that do.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Understanding the Term Sheet</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              A term sheet outlines the key economic and governance terms of the investment. While most terms are negotiable, focus your energy on what truly matters: valuation, board composition, and protective provisions.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Don't over-optimize on valuation at the expense of picking the right partner. A slightly lower valuation from an investor who will move mountains for your company is worth more than a higher valuation from a passive check-writer.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Understand the terms you're agreeing to. Liquidation preferences, participation rights, anti-dilution provisions: these sound like legal boilerplate but have real economic consequences in certain scenarios. Your lawyer should explain the practical implications of every term.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">The Deal Isn't Done Until the Wire Clears</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              This cannot be emphasized enough: the deal is not done when you sign the term sheet. It's not done when you sign the final documents. It's done when the wire clears your bank account. Until then, anything can happen.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Stay close to your lead investor during the closing period. Regular check-ins ensure small issues don't become big problems. If they have concerns, address them immediately. Keep the relationship warm and the process moving.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Don't Let the Business Slip</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Here's where founders often stumble: they get so focused on closing the deal that they take their eye off the business. Revenue slips. A key customer churns. A team member quits. Then, in the final stages of diligence, the investor notices.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              When metrics deteriorate during closing, investors get cold feet or try to renegotiate terms. You've seen the headlines: "Company announces funding round, then quietly takes a lower valuation." Often the real story is that something went wrong between term sheet and close.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Keep building. Keep selling. Keep the metrics moving in the right direction. The round isn't over until the money is in the bank.
+            </p>
+
+            <!-- Do/Don't Box -->
+            <div class="mt-8 bg-gray-50 rounded-2xl p-6">
+              <h4 class="font-semibold text-ft-black mb-4">Closing Dos and Don'ts</h4>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="text-green-600 font-medium mb-3">DO</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Hire venture-specific counsel, not a generalist
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Budget 3-6 weeks from term sheet to wire
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Keep building and selling during the close
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      Stay in regular contact with your lead investor
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 class="text-red-600 font-medium mb-3">DON'T</h5>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Celebrate until the wire actually clears
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Over-optimize on valuation vs. partner quality
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Take your eye off the business during closing
+                    </li>
+                    <li class="flex items-start gap-2">
+                      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Use term sheets purely as negotiating leverage
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Final Thoughts -->
+          <section id="final-thoughts" class="scroll-mt-8">
+            <div class="mb-6">
+              <h2 class="text-3xl font-bold text-ft-black mb-4">Final Thoughts</h2>
+              <p class="text-lg text-gray-500 italic">
+                Fundraising is a means to an end, not the end itself. Keep perspective throughout the process.
+              </p>
+            </div>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">The Mental Game</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Fundraising is emotionally brutal. You will face rejection, lots of it. Investors will pass for reasons that seem arbitrary. Deals will fall through at the last minute. This is normal. It's not a reflection of your worth as a founder or the potential of your company.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Build support systems. Talk to other founders who've been through it. Take care of your health. The process is a marathon, and burning out halfway through helps no one.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">Relationships Over Transactions</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              The best investor relationships extend far beyond the initial check. Your investors become advisors, recruiters, business development partners, and often lifelong friends. Choose partners you genuinely want to work with for the next decade.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              Even investors who pass can become valuable relationships. The partner who passed on your seed might lead your Series A. The analyst who couldn't convince their partnership might join your company. Play the long game.
+            </p>
+
+            <h3 class="text-xl font-semibold text-ft-black mt-8 mb-4">What Actually Matters</h3>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              In the end, fundraising success comes down to three things: a compelling business worth investing in, a founder capable of communicating why it matters, and a process that creates the conditions for yes.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-4">
+              You can't control market conditions or investor preferences. But you can control your preparation, your narrative, and your execution. Focus your energy there.
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-8">
+              And remember: the best companies don't just raise money. They build something so undeniably valuable that investors come to them. Let that be your north star.
+            </p>
+
+            <!-- CTA Box -->
+            <div class="bg-gradient-to-br from-ft-navy to-ft-navy/90 rounded-2xl p-8 text-center">
+              <h3 class="text-2xl font-bold text-white mb-4">Ready to connect with the community?</h3>
+              <p class="text-white/70 mb-6">
+                Join La French Tech Boston to access our investor directory, connect with fellow founders, and get warm introductions.
+              </p>
+              <a
+                href="/apply"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-ft-red text-white rounded-xl hover:bg-ft-red/90 transition-colors font-medium"
+              >
+                Join La French Tech Boston
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </section>
+        </article>
+      </div>
+    </Container>
+  </section>
+</PublicLayout>
+
+<script>
+  // Highlight active section in sidebar
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('section[id]');
+
+  function updateActiveLink() {
+    let current = '';
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      if (window.scrollY >= sectionTop - 100) {
+        current = section.getAttribute('id') || '';
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.classList.remove('border-ft-red', 'text-ft-navy', 'bg-gray-50');
+      link.classList.add('border-transparent');
+      if (link.getAttribute('data-section') === current) {
+        link.classList.add('border-ft-red', 'text-ft-navy', 'bg-gray-50');
+        link.classList.remove('border-transparent');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveLink);
+  updateActiveLink();
+</script>

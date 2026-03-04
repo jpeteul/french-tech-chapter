@@ -1,0 +1,949 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let members: any[] = [];
+let teamMembers: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('board_members')
+    .select('*')
+    .order('display_order', { ascending: true });
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    members = data || [];
+  }
+
+  // Fetch team members
+  const { data: teamData } = await supabaseAdmin
+    .from('team_members')
+    .select('*')
+    .order('display_order', { ascending: true });
+
+  teamMembers = teamData || [];
+}
+
+const activeMembers = members.filter(m => m.is_active);
+const inactiveMembers = members.filter(m => !m.is_active);
+const activeTeam = teamMembers.filter(m => m.is_active);
+const inactiveTeam = teamMembers.filter(m => !m.is_active);
+---
+
+<AdminLayout title="Manage Board">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Manage Board</h1>
+      <p class="text-white/70 mt-2">
+        Add, edit, and reorder board members
+      </p>
+    </div>
+    <button
+      id="add-member-btn"
+      class="px-4 py-2 bg-ft-red text-white font-medium rounded-xl hover:bg-ft-red/90 transition-all duration-300 shadow-lg shadow-ft-red/25"
+    >
+      + Add Board Member
+    </button>
+  </div>
+
+  {error && (
+    <Card variant="glass" class="mb-6 border-red-500/50">
+      <p class="text-red-600">{error}</p>
+    </Card>
+  )}
+
+  <!-- Add/Edit Member Modal -->
+  <div id="member-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="backdrop-blur-xl bg-white/95 rounded-2xl p-8 border border-white/50 shadow-2xl max-w-lg w-full">
+      <h2 id="modal-title" class="text-2xl font-bold text-ft-black mb-6">Add Board Member</h2>
+      <form id="member-form" class="space-y-4">
+        <input type="hidden" id="member-id" name="id" />
+
+        <div>
+          <label for="name" class="block text-sm font-medium text-ft-black mb-1">Name *</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="Full name"
+          />
+        </div>
+
+        <div>
+          <label for="board_role" class="block text-sm font-medium text-ft-black mb-1">Board Role</label>
+          <select
+            id="board_role"
+            name="board_role"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+          >
+            <option value="">None</option>
+            <option value="President">President</option>
+            <option value="Treasurer">Treasurer</option>
+            <option value="Clerk">Clerk</option>
+            <option value="custom">Custom...</option>
+          </select>
+          <input
+            type="text"
+            id="board_role_custom"
+            name="board_role_custom"
+            class="hidden mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="Enter custom role"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-ft-black mb-1">Job Title</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="e.g. Founder & CEO"
+            />
+          </div>
+          <div>
+            <label for="company" class="block text-sm font-medium text-ft-black mb-1">Company</label>
+            <input
+              type="text"
+              id="company"
+              name="company"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="Company name"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="linkedin" class="block text-sm font-medium text-ft-black mb-1">LinkedIn Handle</label>
+          <div class="flex">
+            <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+              linkedin.com/in/
+            </span>
+            <input
+              type="text"
+              id="linkedin"
+              name="linkedin"
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="username"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-ft-black mb-1">Photo</label>
+          <div id="photo-preview-container" class="hidden mb-3">
+            <img id="photo-preview" src="" alt="Preview" class="w-24 h-24 rounded-xl object-cover" />
+          </div>
+          <div class="flex gap-2">
+            <label class="flex-1 cursor-pointer">
+              <div class="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-ft-red hover:bg-ft-red/5 transition-colors">
+                <span id="upload-text" class="text-sm text-gray-600">Click to upload photo</span>
+              </div>
+              <input
+                type="file"
+                id="photo-file"
+                name="photo"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                class="hidden"
+              />
+            </label>
+          </div>
+          <input type="hidden" id="image_url" name="image_url" />
+          <p class="text-xs text-gray-500 mt-1">JPG, PNG, WebP or GIF. Max 5MB.</p>
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-ft-black mb-1">Email (for self-service upload link)</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="board.member@email.com"
+          />
+        </div>
+
+        <div>
+          <label for="display_order" class="block text-sm font-medium text-ft-black mb-1">Display Order</label>
+          <input
+            type="number"
+            id="display_order"
+            name="display_order"
+            min="1"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="1"
+          />
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 bg-ft-red text-white font-medium rounded-lg hover:bg-ft-red/90 transition-colors"
+          >
+            Save Member
+          </button>
+          <button
+            type="button"
+            id="cancel-btn"
+            class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Active Board Members -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-white mb-4">Active Board Members ({activeMembers.length})</h2>
+    {activeMembers.length === 0 ? (
+      <Card variant="glass">
+        <p class="text-gray-500 text-center py-4">No board members yet</p>
+      </Card>
+    ) : (
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {activeMembers.map((member) => (
+          <Card variant="glass" hover>
+            <div class="flex flex-col items-center text-center">
+              {member.image_url ? (
+                <img
+                  src={member.image_url}
+                  alt={member.name}
+                  class="w-20 h-20 rounded-xl object-cover mb-3 shadow-lg"
+                />
+              ) : (
+                <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-ft-red to-rose-600 flex items-center justify-center mb-3 shadow-lg">
+                  <span class="text-xl font-bold text-white">
+                    {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+              )}
+              <h3 class="font-semibold text-ft-black">{member.name}</h3>
+              {member.board_role && (
+                <p class="text-sm font-medium text-ft-red">{member.board_role}</p>
+              )}
+              {(member.title || member.company) && (
+                <p class="text-sm text-gray-600 mt-1">
+                  {member.title}
+                  {member.title && member.company && ' at '}
+                  {member.company}
+                </p>
+              )}
+              <p class="text-xs text-gray-400 mt-1">Order: {member.display_order}</p>
+
+              <div class="flex flex-wrap gap-2 mt-4 justify-center">
+                <button
+                  class="edit-btn px-3 py-1 text-xs bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-member={JSON.stringify(member)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="upload-link-btn px-3 py-1 text-xs bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors"
+                  data-token={member.upload_token}
+                  data-name={member.name}
+                >
+                  Upload Link
+                </button>
+                <button
+                  class="toggle-btn px-3 py-1 text-xs bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-active="true"
+                >
+                  Deactivate
+                </button>
+                <button
+                  class="delete-btn px-3 py-1 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-name={member.name}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <!-- Inactive Board Members -->
+  {inactiveMembers.length > 0 && (
+    <div>
+      <h2 class="text-xl font-semibold text-white mb-4">Inactive Members ({inactiveMembers.length})</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {inactiveMembers.map((member) => (
+          <Card variant="glass" class="opacity-60">
+            <div class="flex flex-col items-center text-center">
+              {member.image_url ? (
+                <img
+                  src={member.image_url}
+                  alt={member.name}
+                  class="w-20 h-20 rounded-xl object-cover mb-3 shadow-lg grayscale"
+                />
+              ) : (
+                <div class="w-20 h-20 rounded-xl bg-gray-400 flex items-center justify-center mb-3 shadow-lg">
+                  <span class="text-xl font-bold text-white">
+                    {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+              )}
+              <h3 class="font-semibold text-ft-black">{member.name}</h3>
+              {(member.title || member.company) && (
+                <p class="text-sm text-gray-600 mt-1">
+                  {member.title}
+                  {member.title && member.company && ' at '}
+                  {member.company}
+                </p>
+              )}
+
+              <div class="flex gap-2 mt-4">
+                <button
+                  class="edit-btn px-3 py-1 text-xs bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-member={JSON.stringify(member)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="toggle-btn px-3 py-1 text-xs bg-green-100 text-green-600 rounded-lg hover:bg-green-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-active="false"
+                >
+                  Reactivate
+                </button>
+                <button
+                  class="delete-btn px-3 py-1 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-name={member.name}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Divider -->
+  <div class="border-t border-white/20 my-12"></div>
+
+  <!-- Team Section -->
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h2 class="text-2xl font-bold text-white">Team Members</h2>
+      <p class="text-white/70 mt-1">
+        Non-board team members shown on the About page
+      </p>
+    </div>
+    <button
+      id="add-team-btn"
+      class="px-4 py-2 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all duration-300 shadow-lg"
+    >
+      + Add Team Member
+    </button>
+  </div>
+
+  <!-- Team Member Modal -->
+  <div id="team-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="backdrop-blur-xl bg-white/95 rounded-2xl p-8 border border-white/50 shadow-2xl max-w-lg w-full">
+      <h2 id="team-modal-title" class="text-2xl font-bold text-ft-black mb-6">Add Team Member</h2>
+      <form id="team-form" class="space-y-4">
+        <input type="hidden" id="team-id" name="id" />
+
+        <div>
+          <label for="team-name" class="block text-sm font-medium text-ft-black mb-1">Name *</label>
+          <input
+            type="text"
+            id="team-name"
+            name="name"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            placeholder="Full name"
+          />
+        </div>
+
+        <div>
+          <label for="team-role" class="block text-sm font-medium text-ft-black mb-1">Role</label>
+          <input
+            type="text"
+            id="team-role"
+            name="role"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            placeholder="e.g. Community Manager"
+          />
+        </div>
+
+        <div>
+          <label for="team-linkedin" class="block text-sm font-medium text-ft-black mb-1">LinkedIn Handle</label>
+          <div class="flex">
+            <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+              linkedin.com/in/
+            </span>
+            <input
+              type="text"
+              id="team-linkedin"
+              name="linkedin"
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="username"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="team-image-url" class="block text-sm font-medium text-ft-black mb-1">Image URL</label>
+          <input
+            type="text"
+            id="team-image-url"
+            name="image_url"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            placeholder="https://..."
+          />
+        </div>
+
+        <div>
+          <label for="team-display-order" class="block text-sm font-medium text-ft-black mb-1">Display Order</label>
+          <input
+            type="number"
+            id="team-display-order"
+            name="display_order"
+            min="1"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            placeholder="1"
+          />
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Save Team Member
+          </button>
+          <button
+            type="button"
+            id="team-cancel-btn"
+            class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Active Team Members -->
+  <div class="mb-8">
+    <h3 class="text-lg font-semibold text-white mb-4">Active Team ({activeTeam.length})</h3>
+    {activeTeam.length === 0 ? (
+      <Card variant="glass">
+        <p class="text-gray-500 text-center py-4">No team members yet</p>
+      </Card>
+    ) : (
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {activeTeam.map((member) => (
+          <Card variant="glass" hover>
+            <div class="flex flex-col items-center text-center">
+              {member.image_url ? (
+                <img
+                  src={member.image_url}
+                  alt={member.name}
+                  class="w-20 h-20 rounded-xl object-cover mb-3 shadow-lg"
+                />
+              ) : (
+                <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-3 shadow-lg">
+                  <span class="text-xl font-bold text-white">
+                    {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+              )}
+              <h3 class="font-semibold text-ft-black">{member.name}</h3>
+              {member.role && (
+                <p class="text-sm text-emerald-600 font-medium">{member.role}</p>
+              )}
+              {member.linkedin && (
+                <a
+                  href={`https://linkedin.com/in/${member.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-xs text-ft-navy hover:text-ft-red mt-1 inline-flex items-center gap-1"
+                >
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                  {member.linkedin}
+                </a>
+              )}
+              <p class="text-xs text-gray-400 mt-1">Order: {member.display_order}</p>
+
+              <div class="flex flex-wrap gap-2 mt-4 justify-center">
+                <button
+                  class="team-edit-btn px-3 py-1 text-xs bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-member={JSON.stringify(member)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="team-toggle-btn px-3 py-1 text-xs bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-active="true"
+                >
+                  Deactivate
+                </button>
+                <button
+                  class="team-delete-btn px-3 py-1 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-name={member.name}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <!-- Inactive Team Members -->
+  {inactiveTeam.length > 0 && (
+    <div>
+      <h3 class="text-lg font-semibold text-white mb-4">Inactive Team ({inactiveTeam.length})</h3>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {inactiveTeam.map((member) => (
+          <Card variant="glass" class="opacity-60">
+            <div class="flex flex-col items-center text-center">
+              {member.image_url ? (
+                <img
+                  src={member.image_url}
+                  alt={member.name}
+                  class="w-20 h-20 rounded-xl object-cover mb-3 shadow-lg grayscale"
+                />
+              ) : (
+                <div class="w-20 h-20 rounded-xl bg-gray-400 flex items-center justify-center mb-3 shadow-lg">
+                  <span class="text-xl font-bold text-white">
+                    {member.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+              )}
+              <h3 class="font-semibold text-ft-black">{member.name}</h3>
+              {member.role && (
+                <p class="text-sm text-gray-500">{member.role}</p>
+              )}
+              {member.linkedin && (
+                <p class="text-xs text-gray-400 mt-1">linkedin.com/in/{member.linkedin}</p>
+              )}
+
+              <div class="flex gap-2 mt-4">
+                <button
+                  class="team-edit-btn px-3 py-1 text-xs bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-member={JSON.stringify(member)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="team-toggle-btn px-3 py-1 text-xs bg-green-100 text-green-600 rounded-lg hover:bg-green-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-active="false"
+                >
+                  Reactivate
+                </button>
+                <button
+                  class="team-delete-btn px-3 py-1 text-xs bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={member.id}
+                  data-name={member.name}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )}
+</AdminLayout>
+
+<script>
+  // === BOARD MEMBER MODAL ===
+  const modal = document.getElementById('member-modal') as HTMLDivElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
+  const form = document.getElementById('member-form') as HTMLFormElement;
+  const addBtn = document.getElementById('add-member-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+
+  // Form fields
+  const memberId = document.getElementById('member-id') as HTMLInputElement;
+  const nameField = document.getElementById('name') as HTMLInputElement;
+  const titleField = document.getElementById('title') as HTMLInputElement;
+  const companyField = document.getElementById('company') as HTMLInputElement;
+  const linkedinField = document.getElementById('linkedin') as HTMLInputElement;
+  const imageUrlField = document.getElementById('image_url') as HTMLInputElement;
+  const displayOrderField = document.getElementById('display_order') as HTMLInputElement;
+  const emailField = document.getElementById('email') as HTMLInputElement;
+  const boardRoleSelect = document.getElementById('board_role') as HTMLSelectElement;
+  const boardRoleCustom = document.getElementById('board_role_custom') as HTMLInputElement;
+  const photoFile = document.getElementById('photo-file') as HTMLInputElement;
+  const photoPreview = document.getElementById('photo-preview') as HTMLImageElement;
+  const photoPreviewContainer = document.getElementById('photo-preview-container') as HTMLDivElement;
+  const uploadText = document.getElementById('upload-text') as HTMLSpanElement;
+
+  let selectedFile: File | null = null;
+
+  // Board role select - show/hide custom input
+  boardRoleSelect?.addEventListener('change', () => {
+    if (boardRoleSelect.value === 'custom') {
+      boardRoleCustom.classList.remove('hidden');
+      boardRoleCustom.focus();
+    } else {
+      boardRoleCustom.classList.add('hidden');
+      boardRoleCustom.value = '';
+    }
+  });
+
+  // Photo file selection
+  photoFile?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      selectedFile = file;
+      uploadText.textContent = file.name;
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        photoPreview.src = e.target?.result as string;
+        photoPreviewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Open modal for adding
+  addBtn?.addEventListener('click', () => {
+    modalTitle.textContent = 'Add Board Member';
+    form.reset();
+    memberId.value = '';
+    boardRoleCustom.classList.add('hidden');
+    selectedFile = null;
+    photoPreviewContainer.classList.add('hidden');
+    uploadText.textContent = 'Click to upload photo';
+    modal.classList.remove('hidden');
+  });
+
+  // Close modal
+  cancelBtn?.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Edit buttons
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const member = JSON.parse((btn as HTMLButtonElement).dataset.member || '{}');
+      modalTitle.textContent = 'Edit Board Member';
+      memberId.value = member.id;
+      nameField.value = member.name || '';
+      titleField.value = member.title || '';
+      companyField.value = member.company || '';
+      linkedinField.value = member.linkedin || '';
+      imageUrlField.value = member.image_url || '';
+      displayOrderField.value = member.display_order || '';
+      emailField.value = member.email || '';
+      selectedFile = null;
+
+      // Handle board_role field
+      const role = member.board_role || '';
+      const predefinedRoles = ['', 'President', 'Treasurer', 'Clerk'];
+      if (predefinedRoles.includes(role)) {
+        boardRoleSelect.value = role;
+        boardRoleCustom.classList.add('hidden');
+        boardRoleCustom.value = '';
+      } else if (role) {
+        boardRoleSelect.value = 'custom';
+        boardRoleCustom.classList.remove('hidden');
+        boardRoleCustom.value = role;
+      } else {
+        boardRoleSelect.value = '';
+        boardRoleCustom.classList.add('hidden');
+      }
+
+      // Show current photo if exists
+      if (member.image_url) {
+        photoPreview.src = member.image_url;
+        photoPreviewContainer.classList.remove('hidden');
+        uploadText.textContent = 'Click to change photo';
+      } else {
+        photoPreviewContainer.classList.add('hidden');
+        uploadText.textContent = 'Click to upload photo';
+      }
+
+      modal.classList.remove('hidden');
+    });
+  });
+
+  // Copy upload link buttons
+  document.querySelectorAll('.upload-link-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const token = (btn as HTMLButtonElement).dataset.token;
+      const name = (btn as HTMLButtonElement).dataset.name;
+      const url = `${window.location.origin}/board/upload?token=${token}`;
+
+      navigator.clipboard.writeText(url).then(() => {
+        alert(`Upload link for ${name} copied to clipboard!\n\nShare this link with them to upload their photo:\n${url}`);
+      }).catch(() => {
+        prompt(`Upload link for ${name}:`, url);
+      });
+    });
+  });
+
+  // Toggle active/inactive
+  document.querySelectorAll('.toggle-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const isActive = (btn as HTMLButtonElement).dataset.active === 'true';
+
+      const response = await fetch('/api/admin/board', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_active: !isActive }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update member');
+      }
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const name = (btn as HTMLButtonElement).dataset.name;
+
+      if (confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`)) {
+        const response = await fetch(`/api/admin/board?id=${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          alert(data.error || 'Failed to delete member');
+        }
+      }
+    });
+  });
+
+  // Form submission
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const isEdit = !!memberId.value;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    // Determine board_role value
+    let boardRole: string | null = null;
+    if (boardRoleSelect.value === 'custom') {
+      boardRole = boardRoleCustom.value || null;
+    } else if (boardRoleSelect.value) {
+      boardRole = boardRoleSelect.value;
+    }
+
+    const body: Record<string, any> = {
+      name: nameField.value,
+      title: titleField.value,
+      company: companyField.value,
+      linkedin: linkedinField.value,
+      image_url: imageUrlField.value || null,
+      email: emailField.value || null,
+      board_role: boardRole,
+    };
+
+    if (isEdit) {
+      body.id = memberId.value;
+    }
+
+    if (displayOrderField.value) {
+      body.display_order = parseInt(displayOrderField.value);
+    }
+
+    // First save the member
+    const response = await fetch('/api/admin/board', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error || 'Failed to save member');
+      return;
+    }
+
+    const result = await response.json();
+    const savedMemberId = isEdit ? memberId.value : result.member?.id;
+
+    // If there's a new photo file, upload it
+    if (selectedFile && savedMemberId) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('memberId', savedMemberId);
+
+      const uploadResponse = await fetch('/api/admin/board-photo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const data = await uploadResponse.json();
+        alert('Member saved but photo upload failed: ' + (data.error || 'Unknown error'));
+      }
+    }
+
+    window.location.reload();
+  });
+
+  // === TEAM MEMBER MODAL ===
+  const teamModal = document.getElementById('team-modal') as HTMLDivElement;
+  const teamModalTitle = document.getElementById('team-modal-title') as HTMLHeadingElement;
+  const teamForm = document.getElementById('team-form') as HTMLFormElement;
+  const addTeamBtn = document.getElementById('add-team-btn') as HTMLButtonElement;
+  const teamCancelBtn = document.getElementById('team-cancel-btn') as HTMLButtonElement;
+
+  // Team form fields
+  const teamId = document.getElementById('team-id') as HTMLInputElement;
+  const teamNameField = document.getElementById('team-name') as HTMLInputElement;
+  const teamRoleField = document.getElementById('team-role') as HTMLInputElement;
+  const teamLinkedinField = document.getElementById('team-linkedin') as HTMLInputElement;
+  const teamImageUrlField = document.getElementById('team-image-url') as HTMLInputElement;
+  const teamDisplayOrderField = document.getElementById('team-display-order') as HTMLInputElement;
+
+  // Open team modal for adding
+  addTeamBtn?.addEventListener('click', () => {
+    teamModalTitle.textContent = 'Add Team Member';
+    teamForm.reset();
+    teamId.value = '';
+    teamModal.classList.remove('hidden');
+  });
+
+  // Close team modal
+  teamCancelBtn?.addEventListener('click', () => {
+    teamModal.classList.add('hidden');
+  });
+
+  teamModal?.addEventListener('click', (e) => {
+    if (e.target === teamModal) {
+      teamModal.classList.add('hidden');
+    }
+  });
+
+  // Team edit buttons
+  document.querySelectorAll('.team-edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const member = JSON.parse((btn as HTMLButtonElement).dataset.member || '{}');
+      teamModalTitle.textContent = 'Edit Team Member';
+      teamId.value = member.id;
+      teamNameField.value = member.name || '';
+      teamRoleField.value = member.role || '';
+      teamLinkedinField.value = member.linkedin || '';
+      teamImageUrlField.value = member.image_url || '';
+      teamDisplayOrderField.value = member.display_order || '';
+      teamModal.classList.remove('hidden');
+    });
+  });
+
+  // Team toggle active/inactive
+  document.querySelectorAll('.team-toggle-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const isActive = (btn as HTMLButtonElement).dataset.active === 'true';
+
+      const response = await fetch('/api/admin/team', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_active: !isActive }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update team member');
+      }
+    });
+  });
+
+  // Team delete buttons
+  document.querySelectorAll('.team-delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const name = (btn as HTMLButtonElement).dataset.name;
+
+      if (confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`)) {
+        const response = await fetch(`/api/admin/team?id=${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          alert(data.error || 'Failed to delete team member');
+        }
+      }
+    });
+  });
+
+  // Team form submission
+  teamForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const isEdit = !!teamId.value;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const body: Record<string, any> = {
+      name: teamNameField.value,
+      role: teamRoleField.value,
+      linkedin: teamLinkedinField.value,
+      image_url: teamImageUrlField.value || null,
+    };
+
+    if (isEdit) {
+      body.id = teamId.value;
+    }
+
+    if (teamDisplayOrderField.value) {
+      body.display_order = parseInt(teamDisplayOrderField.value);
+    }
+
+    const response = await fetch('/api/admin/team', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error || 'Failed to save team member');
+      return;
+    }
+
+    window.location.reload();
+  });
+</script>

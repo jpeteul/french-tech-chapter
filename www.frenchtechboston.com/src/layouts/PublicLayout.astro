@@ -1,0 +1,24 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import { getUser, getMember } from '../lib/auth';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const user = await getUser(Astro.cookies, Astro.request);
+const member = user ? await getMember(Astro.cookies, Astro.locals.runtime, Astro.request) : null;
+---
+
+<BaseLayout title={title} description={description}>
+  <Header user={user} member={member} />
+  <main>
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,181 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+import Card from '../../components/common/Card.astro';
+import Button from '../../components/common/Button.astro';
+import { getUser } from '../../lib/auth';
+
+export const prerender = false;
+
+const user = await getUser(Astro.cookies, Astro.request);
+const redirect = Astro.url.searchParams.get('redirect') || '/members';
+const errorParam = Astro.url.searchParams.get('error');
+
+// If already logged in, redirect to members area
+if (user) {
+  return Astro.redirect(redirect);
+}
+---
+
+<PublicLayout title="Member Login" description="Login to your La French Tech Boston member account.">
+  <Section background="gray" padding="lg">
+    <Container size="sm">
+      <div class="max-w-md mx-auto">
+        <Card class="p-8">
+          <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-ft-black mb-2">Member Login</h1>
+            <p class="text-gray-600">
+              Enter your email to receive a magic link
+            </p>
+          </div>
+
+          {errorParam && (
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-red-800">
+                    {errorParam === 'auth_failed' ? 'Login failed. Please try again.' : errorParam}
+                  </p>
+                  <p class="text-xs text-red-600 mt-2">
+                    <strong>On a corporate or university network?</strong> Some networks (like Harvard, corporate offices) block authentication. Try using a VPN or mobile data instead.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form id="login-form" class="space-y-6">
+            <input type="hidden" name="redirect" value={redirect} />
+
+            <div>
+              <label for="email" class="block text-sm font-medium text-ft-black mb-1">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+                placeholder="you@company.com"
+              />
+            </div>
+
+            <Button type="submit" variant="primary" class="w-full">
+              Send Magic Link
+            </Button>
+
+            <p id="form-message" class="text-sm text-center hidden"></p>
+          </form>
+
+          <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+            <p class="text-sm text-gray-600">
+              Not a member yet?{' '}
+              <a href="/apply" class="text-ft-red hover:underline font-medium">
+                Apply to join
+              </a>
+            </p>
+          </div>
+        </Card>
+      </div>
+    </Container>
+  </Section>
+</PublicLayout>
+
+<script is:inline>
+  (function() {
+    var form = document.getElementById('login-form');
+    var message = document.getElementById('form-message');
+
+    // Handle tokens in hash (Supabase implicit flow redirect)
+    if (window.location.hash) {
+      var hashParams = new URLSearchParams(window.location.hash.substring(1));
+      var accessToken = hashParams.get('access_token');
+      var refreshToken = hashParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        // Show loading state
+        if (message) {
+          message.textContent = 'Logging you in...';
+          message.className = 'text-sm text-center text-green-600';
+          message.classList.remove('hidden');
+        }
+
+        // Send tokens to server to set cookies and link user_id
+        fetch('/api/auth/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }),
+        })
+          .then(function(res) {
+            return res.json();
+          })
+          .then(function(data) {
+            if (data.success) {
+              window.location.href = data.redirect || '/members';
+            } else {
+              if (message) {
+                message.textContent = data.error || 'Login failed';
+                message.className = 'text-sm text-center text-red-600';
+              }
+            }
+          })
+          .catch(function(err) {
+            if (message) {
+              message.innerHTML = 'Login failed. If you\'re on a corporate/university network, try using a <strong>VPN</strong> or mobile data.';
+              message.className = 'text-sm text-center text-red-600';
+              message.classList.remove('hidden');
+            }
+          });
+      }
+    }
+
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(form);
+        var email = formData.get('email');
+        var redirect = formData.get('redirect');
+
+        var button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = 'Sending...';
+
+        fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, redirect: redirect }),
+        })
+          .then(function(response) {
+            return response.json().then(function(data) {
+              return { ok: response.ok, data: data };
+            });
+          })
+          .then(function(result) {
+            if (result.ok) {
+              message.textContent = 'Check your email for the login link!';
+              message.className = 'text-sm text-center text-green-600';
+              form.reset();
+            } else {
+              message.textContent = result.data.error || 'Something went wrong.';
+              message.className = 'text-sm text-center text-red-600';
+              button.disabled = false;
+              button.textContent = 'Send Magic Link';
+            }
+            message.classList.remove('hidden');
+          })
+          .catch(function(error) {
+            message.innerHTML = 'Something went wrong. If you\'re on a corporate/university network, try using a <strong>VPN</strong> or mobile data.';
+            message.className = 'text-sm text-center text-red-600';
+            message.classList.remove('hidden');
+            button.disabled = false;
+            button.textContent = 'Send Magic Link';
+          });
+      });
+    }
+  })();
+</script>

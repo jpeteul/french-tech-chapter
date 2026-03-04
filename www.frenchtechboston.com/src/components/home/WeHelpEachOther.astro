@@ -1,0 +1,53 @@
+---
+import Container from '../common/Container.astro';
+
+const items = [
+  {
+    icon: '🤝',
+    headline: 'Get introductions to entrepreneurs who\'ve been there',
+    description: 'Whether it\'s navigating US incorporation, hiring your first US employee, or figuring out health insurance, someone in the community has already dealt with it.',
+  },
+  {
+    icon: '💰',
+    headline: 'Get introductions to potential investors',
+    description: 'Our shared investor directory lets you see who in the community knows the investors you\'re targeting, and request a warm introduction.',
+  },
+  {
+    icon: '💬',
+    headline: 'Discuss best practices, tips, and tools with peers',
+    description: 'From payroll providers to pitch deck feedback, the community is a sounding board for the decisions that don\'t warrant hiring a consultant.',
+  },
+  {
+    icon: '📱',
+    headline: 'Get early access to people and talent',
+    description: 'Job openings, co-founder searches, freelancer recommendations. Our WhatsApp community is where things move fast, before they hit LinkedIn.',
+  },
+];
+---
+
+<section class="py-16 sm:py-24 bg-gradient-to-br from-ft-navy via-ft-blue to-ft-navy relative overflow-hidden">
+  <Container class="relative">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
+        We Help Each Other
+      </h2>
+      <p class="text-white/70 max-w-2xl mx-auto">
+        This community exists because building a business is hard, and it's harder when you do it alone. Here's what members actually use La French Tech Boston for:
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      {items.map((item) => (
+        <div class="flex gap-5 p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-colors">
+          <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">
+            {item.icon}
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-white mb-2">{item.headline}</h3>
+            <p class="text-white/70 text-sm leading-relaxed">{item.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </Container>
+</section>

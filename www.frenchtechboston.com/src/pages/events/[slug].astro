@@ -1,0 +1,134 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import Button from '../../components/common/Button.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+let event: any = null;
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin && slug) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('events')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (!fetchError && data) {
+    event = data;
+  }
+}
+
+if (!event) {
+  return Astro.redirect('/events');
+}
+
+const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+const formattedTime = new Date(event.date).toLocaleTimeString('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
+const isPast = new Date(event.date) < new Date();
+---
+
+<PublicLayout title={event.title} description={event.description || ''}>
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <a href="/events" class="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Events
+        </a>
+        <div class="flex items-center gap-3 mb-4">
+          {event.is_members_only && <Badge variant="info">Members Only</Badge>}
+          {isPast && <Badge variant="warning">Past Event</Badge>}
+        </div>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">{event.title}</h1>
+        <div class="flex flex-wrap items-center gap-4 text-white/70">
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {formattedDate}
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {formattedTime}
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {event.location}
+          </span>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl mx-auto">
+        <Card variant="glass" padding="lg">
+          {event.image_url && (
+            <img
+              src={event.image_url}
+              alt={event.title}
+              class="w-full h-64 sm:h-80 object-cover rounded-xl mb-8"
+            />
+          )}
+
+          <div class="prose prose-lg max-w-none text-gray-700">
+            <p class="text-lg leading-relaxed whitespace-pre-line">{event.description}</p>
+          </div>
+
+          {!isPast && event.registration_url && (
+            <div class="mt-8 pt-8 border-t border-gray-200">
+              <Button href={event.registration_url} variant="primary" size="lg">
+                Register for This Event
+              </Button>
+            </div>
+          )}
+
+          {isPast && (
+            <div class="mt-8 pt-8 border-t border-gray-200">
+              <p class="text-gray-500 italic">This event has already taken place.</p>
+            </div>
+          )}
+        </Card>
+
+        <div class="mt-8 text-center">
+          <a
+            href="/events"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to All Events
+          </a>
+        </div>
+      </div>
+    </Container>
+  </Section>
+</PublicLayout>

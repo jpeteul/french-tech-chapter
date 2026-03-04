@@ -1,0 +1,100 @@
+---
+import Container from '../common/Container.astro';
+import Card from '../common/Card.astro';
+import Button from '../common/Button.astro';
+import Badge from '../common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+let upcomingEvents: any[] = [];
+
+// Fetch upcoming events from database
+if (supabaseAdmin) {
+  const now = new Date();
+  const { data } = await supabaseAdmin
+    .from('events')
+    .select('*')
+    .gte('date', now.toISOString())
+    .order('date', { ascending: true })
+    .limit(3);
+
+  if (data && data.length > 0) {
+    upcomingEvents = data.map(e => ({
+      title: e.title,
+      date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      location: e.location,
+      description: e.description || '',
+      membersOnly: e.is_members_only,
+      slug: e.slug,
+    }));
+  }
+}
+
+const hasEvents = upcomingEvents.length > 0;
+---
+
+<section class="py-16 sm:py-24 bg-gradient-to-br from-ft-navy via-ft-blue to-ft-navy relative overflow-hidden">
+  <!-- Background Event Photo -->
+  <div class="absolute inset-0">
+    <img
+      src="/images/events/Photo event1.avif"
+      alt="French Tech Boston event"
+      class="w-full h-full object-cover opacity-20"
+    />
+    <div class="absolute inset-0 bg-gradient-to-br from-ft-navy via-ft-blue/90 to-ft-navy"></div>
+  </div>
+
+  <!-- Decorative gradient blobs -->
+  <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-ft-red/15 to-transparent rounded-full blur-3xl -translate-y-1/4 -translate-x-1/4"></div>
+  <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-tr from-ft-blue/30 to-transparent rounded-full blur-3xl translate-y-1/4 translate-x-1/4"></div>
+
+  <Container class="relative">
+    <div class="flex justify-between items-end mb-12">
+      <div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-2">
+          Upcoming Events
+        </h2>
+        <p class="text-white/70">
+          Connect with the community at our events
+        </p>
+      </div>
+      <Button href="/events" variant="outline" size="sm" class="hidden sm:inline-flex">
+        View All Events
+      </Button>
+    </div>
+
+    {hasEvents ? (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {upcomingEvents.map((event) => (
+          <Card variant="glass" hover>
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <p class="text-sm text-ft-red font-semibold">{event.date}</p>
+                <p class="text-sm text-gray-500">{event.location}</p>
+              </div>
+              {event.membersOnly && (
+                <Badge variant="info">Members Only</Badge>
+              )}
+            </div>
+            <h3 class="text-lg font-semibold text-ft-black mb-2">{event.title}</h3>
+            <p class="text-gray-600 text-sm">{event.description}</p>
+          </Card>
+        ))}
+      </div>
+    ) : (
+      <Card variant="glass" class="text-center py-12">
+        <div class="text-4xl mb-4">📅</div>
+        <h3 class="text-xl font-semibold text-ft-black mb-2">Stay tuned</h3>
+        <p class="text-gray-600 mb-4">New events coming soon. Join our community to be the first to know!</p>
+        <Button href="/apply" variant="primary" size="sm">
+          Join Us
+        </Button>
+      </Card>
+    )}
+
+    <div class="mt-8 text-center sm:hidden">
+      <Button href="/events" variant="outline">View All Events</Button>
+    </div>
+  </Container>
+</section>

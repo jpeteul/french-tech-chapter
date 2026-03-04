@@ -1,0 +1,150 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import { getUser, getMember, requireAdmin } from '../lib/auth';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const user = await getUser(Astro.cookies, Astro.request);
+const member = await getMember(Astro.cookies, Astro.locals.runtime, Astro.request);
+
+const authResult = await requireAdmin(Astro.cookies, Astro.locals.runtime, Astro.request);
+if ('redirect' in authResult) {
+  return Astro.redirect(authResult.redirect);
+}
+---
+
+<BaseLayout title={title} description={description}>
+  <Header user={user} member={member} />
+  <div class="min-h-screen bg-gradient-to-br from-ft-navy via-ft-blue to-ft-navy relative overflow-hidden">
+    <!-- Decorative gradient blobs -->
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-ft-red/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-ft-blue/40 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+    <div class="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-ft-red/10 to-transparent rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Admin Navigation -->
+      <nav class="mb-8 flex gap-2 backdrop-blur-xl bg-white/10 rounded-2xl p-2 border border-white/20 shadow-lg shadow-black/20 w-fit">
+        <a
+          href="/admin"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname === '/admin'
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Dashboard
+        </a>
+        <a
+          href="/admin/applications"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/applications')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Applications
+        </a>
+        <a
+          href="/admin/members"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/members')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Members
+        </a>
+        <a
+          href="/admin/events"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname === '/admin/events'
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Events
+        </a>
+        <a
+          href="/admin/event-photos"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/event-photos')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Photos
+        </a>
+        <a
+          href="/admin/board"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/board')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Board
+        </a>
+        <a
+          href="/admin/news"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/news')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          News
+        </a>
+        <a
+          href="/admin/subscribers"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/subscribers')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Subscribers
+        </a>
+        <a
+          href="/admin/messages"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/messages')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Messages
+        </a>
+        <a
+          href="/admin/newsletter"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/newsletter')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Newsletter
+        </a>
+      </nav>
+
+      <slot />
+    </div>
+  </div>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,40 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import NewsletterBuilder from '../../components/admin/NewsletterBuilder';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+// Get member count for info display
+let memberCount = 0;
+if (supabaseAdmin) {
+  const { count } = await supabaseAdmin
+    .from('members')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+  memberCount = count || 0;
+}
+---
+
+<AdminLayout title="Send Newsletter">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Send Newsletter</h1>
+    <p class="text-white/70 mt-2">Compose and send a professional newsletter to all active members</p>
+  </div>
+
+  <NewsletterBuilder client:load memberCount={memberCount} />
+
+  <!-- Tips -->
+  <div class="mt-6 p-4 bg-blue-50 rounded-xl">
+    <h3 class="font-semibold text-blue-900 mb-2">Tips for Great Newsletters</h3>
+    <ul class="text-sm text-blue-800 space-y-1">
+      <li>Keep subject lines under 50 characters for better open rates</li>
+      <li>Use a clear, compelling headline that summarizes the main message</li>
+      <li>Break content into sections with images for better readability</li>
+      <li>Always send a test email to yourself before sending to all members</li>
+      <li>Images should be hosted on a public URL (website, CDN, or image host)</li>
+    </ul>
+  </div>
+</AdminLayout>

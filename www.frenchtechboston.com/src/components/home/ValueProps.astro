@@ -1,0 +1,54 @@
+---
+import Container from '../common/Container.astro';
+import Card from '../common/Card.astro';
+
+const values = [
+  {
+    icon: '🤝',
+    title: 'Community',
+    description: 'We welcome every new French tech entrepreneur, ensuring they are surrounded by a welcoming community of peers who understand their journey.',
+  },
+  {
+    icon: '🌉',
+    title: 'Bridge Building',
+    description: 'Connecting the French and American tech ecosystems through events, introductions, and shared knowledge.',
+  },
+  {
+    icon: '🚀',
+    title: 'Growth',
+    description: 'Access to resources, mentorship, and networking opportunities that help French founders succeed in the US market.',
+  },
+  {
+    icon: '🎯',
+    title: 'Focus',
+    description: 'Dedicated to tech startups and scale-ups, with members ranging from early-stage founders to C-level executives.',
+  },
+];
+---
+
+<section class="py-16 sm:py-24 bg-gradient-to-br from-ft-navy via-ft-blue to-ft-navy relative overflow-hidden">
+  <!-- Decorative gradient blobs -->
+  <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-ft-red/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+  <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-ft-blue/40 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+
+  <Container class="relative">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
+        Why Join La French Tech Boston?
+      </h2>
+      <p class="text-white/70 max-w-2xl mx-auto">
+        Our mission is to support entrepreneurs and innovators in the Boston tech ecosystem, building the bridge between France and the US.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {values.map((value) => (
+        <Card variant="glass" hover>
+          <div class="text-4xl mb-4">{value.icon}</div>
+          <h3 class="text-xl font-semibold text-ft-black mb-2">{value.title}</h3>
+          <p class="text-gray-600 text-sm">{value.description}</p>
+        </Card>
+      ))}
+    </div>
+  </Container>
+</section>

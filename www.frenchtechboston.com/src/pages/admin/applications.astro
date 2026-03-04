@@ -1,0 +1,239 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import Button from '../../components/common/Button.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let applications: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('applications')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    applications = data || [];
+  }
+}
+
+const pendingApplications = applications.filter(a => a.status === 'pending');
+const reviewedApplications = applications.filter(a => a.status !== 'pending');
+---
+
+<AdminLayout title="Applications">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Applications</h1>
+    <p class="text-white/70 mt-2">
+      Review and manage membership applications
+    </p>
+  </div>
+
+  {error && (
+    <div class="mb-6 p-4 backdrop-blur-xl bg-red-50/80 border border-red-200/50 rounded-xl text-red-700 text-sm">
+      {error}
+    </div>
+  )}
+
+  <!-- Pending Applications -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-white mb-4">
+      Pending Applications ({pendingApplications.length})
+    </h2>
+
+    {pendingApplications.length === 0 ? (
+      <Card variant="glass">
+        <p class="text-gray-500 text-center py-4">No pending applications</p>
+      </Card>
+    ) : (
+      <div class="space-y-4">
+        {pendingApplications.map((app) => (
+          <Card variant="glass" hover>
+            <div class="flex flex-col lg:flex-row lg:items-start gap-4">
+              <div class="flex-1">
+                <div class="flex items-start justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white font-semibold shadow-lg shadow-amber-500/25">
+                      {app.name ? app.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : '?'}
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-ft-black">{app.name}</h3>
+                      <p class="text-sm text-gray-500">{app.email}</p>
+                    </div>
+                  </div>
+                  <Badge variant="warning">Pending</Badge>
+                </div>
+
+                <div class="mt-4 grid sm:grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span class="text-gray-500">Company:</span>{' '}
+                    <span class="text-ft-black">{app.company || 'Not provided'}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Role:</span>{' '}
+                    <span class="text-ft-black">{app.role || 'Not provided'}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Applied:</span>{' '}
+                    <span class="text-ft-black">{new Date(app.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {app.linkedin && (
+                    <div>
+                      <a href={app.linkedin.startsWith('http') ? app.linkedin : `https://linkedin.com/in/${app.linkedin}`} target="_blank" rel="noopener noreferrer" class="text-ft-red hover:underline">
+                        View LinkedIn
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div class="mt-4 p-3 bg-white/40 rounded-lg">
+                  <p class="text-sm text-gray-500 mb-1">Reason for joining:</p>
+                  <p class="text-sm text-gray-700">{app.reason}</p>
+                </div>
+              </div>
+
+              <div class="flex lg:flex-col gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  class="approve-btn flex-1 lg:flex-none"
+                  data-id={app.id}
+                  data-email={app.email}
+                  data-name={app.name}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  class="reject-btn flex-1 lg:flex-none"
+                  data-id={app.id}
+                >
+                  Reject
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <!-- Reviewed Applications -->
+  <div>
+    <h2 class="text-xl font-semibold text-white mb-4">
+      Recently Reviewed
+    </h2>
+
+    <Card variant="glass" padding="none">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-white/40 border-b border-white/40">
+            <tr>
+              <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Name</th>
+              <th class="text-left px-6 py-3 text-sm font-medium text-gray-500 hidden sm:table-cell">Company</th>
+              <th class="text-left px-6 py-3 text-sm font-medium text-gray-500 hidden md:table-cell">Date</th>
+              <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/40">
+            {reviewedApplications.length === 0 ? (
+              <tr>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                  No reviewed applications yet
+                </td>
+              </tr>
+            ) : (
+              reviewedApplications.map((app) => (
+                <tr class="hover:bg-white/40 transition-colors">
+                  <td class="px-6 py-4">
+                    <div class="font-medium text-ft-black">{app.name}</div>
+                    <div class="text-sm text-gray-500">{app.email}</div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-600 hidden sm:table-cell">
+                    {app.company || '-'}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-500 hidden md:table-cell">
+                    {new Date(app.created_at).toLocaleDateString()}
+                  </td>
+                  <td class="px-6 py-4">
+                    <Badge variant={app.status === 'approved' ? 'success' : 'error'}>
+                      {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                    </Badge>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  </div>
+</AdminLayout>
+
+<script>
+  document.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const el = btn as HTMLElement;
+      const id = el.dataset.id;
+      const email = el.dataset.email;
+      const name = el.dataset.name;
+
+      if (confirm(`Approve ${name}'s application and create their member account?`)) {
+        try {
+          const response = await fetch('/api/admin/applications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, action: 'approve' }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert(`Application approved! A welcome email will be sent to ${email}.`);
+            location.reload();
+          } else {
+            alert(data.error || 'Failed to approve application');
+          }
+        } catch (err) {
+          alert('Something went wrong. Please try again.');
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).dataset.id;
+
+      if (confirm('Are you sure you want to reject this application?')) {
+        try {
+          const response = await fetch('/api/admin/applications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, action: 'reject' }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert('Application rejected.');
+            location.reload();
+          } else {
+            alert(data.error || 'Failed to reject application');
+          }
+        } catch (err) {
+          alert('Something went wrong. Please try again.');
+        }
+      }
+    });
+  });
+</script>

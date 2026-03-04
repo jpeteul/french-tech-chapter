@@ -1,0 +1,64 @@
+---
+import Card from '../common/Card.astro';
+import Badge from '../common/Badge.astro';
+import Button from '../common/Button.astro';
+
+interface Props {
+  title: string;
+  date: string;
+  location: string;
+  description: string;
+  membersOnly?: boolean;
+  registrationUrl?: string;
+  imageUrl?: string;
+  slug?: string;
+}
+
+const { title, date, location, description, membersOnly, registrationUrl, imageUrl, slug } = Astro.props;
+
+const formattedDate = new Date(date).toLocaleDateString('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+---
+
+<Card variant="glass" padding="none" hover>
+  {imageUrl && (
+    <img src={imageUrl} alt={title} class="w-full h-48 object-cover rounded-t-2xl" />
+  )}
+  <div class="p-6">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <p class="text-sm text-ft-red font-semibold">{formattedDate}</p>
+        <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {location}
+        </p>
+      </div>
+      {membersOnly && (
+        <Badge variant="info">Members Only</Badge>
+      )}
+    </div>
+
+    <h3 class="text-xl font-semibold text-ft-black mb-2">{title}</h3>
+    <p class="text-gray-600 text-sm mb-4 line-clamp-2">{description}</p>
+
+    <div class="flex gap-3">
+      {slug && (
+        <Button href={`/events/${slug}`} variant="ghost" size="sm">
+          Learn More
+        </Button>
+      )}
+      {registrationUrl && (
+        <Button href={registrationUrl} variant="primary" size="sm">
+          Register
+        </Button>
+      )}
+    </div>
+  </div>
+</Card>

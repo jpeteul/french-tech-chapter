@@ -1,0 +1,67 @@
+---
+import MembersLayout from '../../../layouts/MembersLayout.astro';
+import InvestorDirectory from '../../../components/investors/InvestorDirectory';
+
+export const prerender = false;
+---
+
+<MembersLayout title="Investor Directory">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white mb-2">Investor Directory</h1>
+    <p class="text-white/80">
+      A shared resource built by our members. Browse investors, see who knows them, and request introductions.
+    </p>
+  </div>
+
+  <!-- Golden Rule Banner -->
+  <div class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm border border-amber-400/30 rounded-2xl p-6 mb-8">
+    <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+      <span class="text-2xl">🤝</span>
+      Introductions are earned, not owed.
+    </h2>
+    <p class="text-white/90 text-sm leading-relaxed mb-4">
+      When a member introduces you to an investor, they put their reputation on the line. Before requesting an intro:
+    </p>
+    <ul class="text-white/80 text-sm space-y-2">
+      <li class="flex items-start gap-2">
+        <span class="text-amber-400 mt-0.5">•</span>
+        <span><strong class="text-white">Do your homework.</strong> Study the investor's thesis, portfolio, and stage focus. If you're not a fit, don't ask.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-amber-400 mt-0.5">•</span>
+        <span><strong class="text-white">Make it easy to say yes.</strong> Explain clearly why you believe you're a match, not just why you need funding.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="text-amber-400 mt-0.5">•</span>
+        <span><strong class="text-white">Respect the answer.</strong> If someone declines, thank them and move on. They may have reasons they can't share.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Add Investor CTA -->
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div class="text-white/80 text-sm">
+      <strong class="text-white">Know an investor?</strong> Add them to the directory. The more we share, the more pathways open up for everyone.
+    </div>
+    <div class="flex gap-3">
+      <a
+        href="/members/investors/mine"
+        class="px-4 py-2 bg-white/10 text-white border border-white/20 rounded-xl hover:bg-white/20 transition-colors text-sm"
+      >
+        My Investors
+      </a>
+      <a
+        href="/members/investors/add"
+        class="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors text-sm flex items-center gap-2"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Investor
+      </a>
+    </div>
+  </div>
+
+  <!-- Directory Component -->
+  <InvestorDirectory client:load />
+</MembersLayout>

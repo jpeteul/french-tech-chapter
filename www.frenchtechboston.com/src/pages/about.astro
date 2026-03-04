@@ -1,0 +1,221 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+import Container from '../components/common/Container.astro';
+import Section from '../components/common/Section.astro';
+import BoardMemberCard from '../components/about/BoardMemberCard.astro';
+import { BOARD_MEMBERS } from '../lib/constants';
+import { getSupabaseAdmin } from '../lib/supabase';
+
+export const prerender = false;
+
+// Try to fetch from database, fall back to constants
+let boardMembers: Array<{
+  name: string;
+  title: string;
+  company: string;
+  linkedin: string;
+  image: string;
+  boardRole?: string;
+}> = BOARD_MEMBERS.map(m => ({ ...m, boardRole: undefined }));
+
+let teamMembers: Array<{
+  name: string;
+  role: string;
+  linkedin: string;
+  image: string;
+}> = [];
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  // Fetch board members
+  const { data } = await supabaseAdmin
+    .from('board_members')
+    .select('*')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true });
+
+  if (data && data.length > 0) {
+    boardMembers = data.map(m => ({
+      name: m.name,
+      title: m.title || '',
+      company: m.company || '',
+      linkedin: m.linkedin || '',
+      image: m.image_url || '',
+      boardRole: m.board_role || undefined,
+    }));
+  }
+
+  // Fetch team members
+  const { data: teamData } = await supabaseAdmin
+    .from('team_members')
+    .select('*')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true });
+
+  if (teamData && teamData.length > 0) {
+    teamMembers = teamData.map(m => ({
+      name: m.name,
+      role: m.role || '',
+      linkedin: m.linkedin || '',
+      image: m.image_url || '',
+    }));
+  }
+}
+---
+
+<PublicLayout title="About" description="Learn about La French Tech Boston and our mission to support French entrepreneurs in the Boston tech ecosystem.">
+  <!-- Hero Section -->
+  <Section background="black" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-6">About Us</h1>
+        <p class="text-xl text-gray-300">
+          La French Tech Boston is the community of French entrepreneurs and tech executives in the Boston area.
+        </p>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Mission Section -->
+  <Section background="white" padding="lg">
+    <Container>
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl font-bold text-ft-black mb-6">Our Mission</h2>
+          <div class="space-y-4 text-gray-600">
+            <p>
+              We welcome every new French tech entrepreneur, ensuring they are surrounded by a welcoming community of peers who understand their journey and can help them navigate the unique challenges of building a tech company in the US market.
+            </p>
+            <p>
+              Our community includes 250+ French entrepreneurs and C-level executives in tech startups, ranging from early-stage founders to experienced executives at scale-ups and established tech companies.
+            </p>
+            <p>
+              We are part of <a href="https://lafrenchtech.com" target="_blank" rel="noopener noreferrer" class="text-ft-red hover:underline">La French Tech</a>, France's startup ecosystem initiative that connects French entrepreneurs worldwide.
+            </p>
+          </div>
+        </div>
+        <div class="bg-ft-gray rounded-2xl p-8">
+          <h3 class="text-xl font-semibold text-ft-black mb-4">What We Do</h3>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <span class="text-ft-red mt-1">✓</span>
+              <span class="text-gray-600">Host monthly networking events and workshops</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-ft-red mt-1">✓</span>
+              <span class="text-gray-600">Connect French founders with US investors and partners</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-ft-red mt-1">✓</span>
+              <span class="text-gray-600">Provide resources and guides for market entry</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-ft-red mt-1">✓</span>
+              <span class="text-gray-600">Facilitate introductions within our member network</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-ft-red mt-1">✓</span>
+              <span class="text-gray-600">Support the broader Boston-France tech corridor</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Board Section -->
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-white mb-4">Our Board</h2>
+        <p class="text-white/70 max-w-2xl mx-auto">
+          La French Tech Boston is led by a volunteer board of experienced entrepreneurs and executives.
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {boardMembers.map((member) => (
+          <BoardMemberCard
+            name={member.name}
+            title={member.title}
+            company={member.company}
+            linkedin={member.linkedin}
+            image={member.image}
+            boardRole={member.boardRole}
+          />
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  <!-- Team Section -->
+  {teamMembers.length > 0 && (
+    <Section background="white" padding="lg">
+      <Container>
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-ft-black mb-4">Our Team</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Meet the dedicated team members who help drive La French Tech Boston's mission forward.
+          </p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {teamMembers.map((member) => (
+            <div class="backdrop-blur-xl bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div class="flex flex-col items-center text-center">
+                {member.image ? (
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    class="w-24 h-24 rounded-2xl object-cover mb-4 shadow-lg"
+                  />
+                ) : (
+                  <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-4 shadow-lg">
+                    <span class="text-2xl font-bold text-white">
+                      {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </span>
+                  </div>
+                )}
+                <h3 class="text-lg font-semibold text-ft-black">{member.name}</h3>
+                {member.role && (
+                  <p class="text-sm font-medium text-emerald-600">{member.role}</p>
+                )}
+                {member.linkedin && (
+                  <a
+                    href={`https://linkedin.com/in/${member.linkedin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-ft-navy/10 hover:bg-ft-red text-ft-navy hover:text-white text-sm font-medium rounded-xl transition-all duration-300"
+                  >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                    Connect
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Container>
+    </Section>
+  )}
+
+  <!-- Sponsors Section -->
+  <Section background="white" padding="lg">
+    <Container>
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-ft-black mb-8">Our Sponsors</h2>
+        <div class="flex justify-center items-center gap-12">
+          <div class="text-gray-400">
+            <img src="/images/sponsors/ey-logo.svg" alt="EY" class="h-12 w-auto opacity-60 hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+        <p class="mt-8 text-gray-500">
+          Interested in sponsoring La French Tech Boston? <a href="/contact" class="text-ft-red hover:underline">Get in touch</a>
+        </p>
+      </div>
+    </Container>
+  </Section>
+</PublicLayout>

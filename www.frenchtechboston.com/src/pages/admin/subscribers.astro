@@ -1,0 +1,222 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let subscribers: any[] = [];
+let members: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  // Fetch all subscribers
+  const { data: subsData, error: subsError } = await supabaseAdmin
+    .from('newsletter_subscribers')
+    .select('*')
+    .is('unsubscribed_at', null)
+    .order('subscribed_at', { ascending: false });
+
+  if (subsError) {
+    error = subsError.message;
+  } else {
+    subscribers = subsData || [];
+  }
+
+  // Fetch all member emails to cross-reference
+  const { data: membersData } = await supabaseAdmin
+    .from('members')
+    .select('email')
+    .eq('status', 'active');
+
+  members = membersData || [];
+}
+
+// Create a set of member emails for quick lookup
+const memberEmails = new Set(members.map(m => m.email?.toLowerCase()));
+
+// Count by source
+const sourceStats: Record<string, number> = {};
+subscribers.forEach(sub => {
+  const source = sub.source || 'unknown';
+  sourceStats[source] = (sourceStats[source] || 0) + 1;
+});
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+---
+
+<AdminLayout title="Newsletter Subscribers">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Newsletter Subscribers</h1>
+      <p class="text-white/70 mt-2">
+        {subscribers.length} active subscriber{subscribers.length !== 1 ? 's' : ''}
+      </p>
+    </div>
+    <button
+      id="export-btn"
+      class="px-4 py-2 bg-ft-red text-white font-medium rounded-xl hover:bg-ft-red/90 transition-all duration-300 shadow-lg shadow-ft-red/25"
+    >
+      Export CSV
+    </button>
+  </div>
+
+  {error && (
+    <Card variant="glass" class="mb-6 border-red-500/50">
+      <p class="text-red-600">{error}</p>
+    </Card>
+  )}
+
+  <!-- Stats by Source -->
+  {Object.keys(sourceStats).length > 0 && (
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      {Object.entries(sourceStats).map(([source, count]) => (
+        <Card variant="glass" padding="sm">
+          <p class="text-2xl font-bold text-ft-black">{count}</p>
+          <p class="text-sm text-gray-500 capitalize">{source}</p>
+        </Card>
+      ))}
+    </div>
+  )}
+
+  <!-- Subscribers List -->
+  {subscribers.length === 0 ? (
+    <Card variant="glass">
+      <p class="text-gray-500 text-center py-8">No subscribers yet</p>
+    </Card>
+  ) : (
+    <Card variant="glass" padding="none">
+      <div class="overflow-x-auto">
+        <table class="w-full" id="subscribers-table">
+          <thead class="bg-gray-50/50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscribed</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {subscribers.map((sub) => {
+              const isMember = memberEmails.has(sub.email?.toLowerCase());
+              return (
+                <tr class="hover:bg-gray-50/50 transition-colors" data-email={sub.email} data-name={sub.name || ''}>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm font-medium text-ft-black">{sub.email}</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm text-gray-600">{sub.name || '—'}</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm text-gray-500 capitalize">{sub.source || 'unknown'}</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-sm text-gray-500">{formatDate(sub.subscribed_at)}</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {isMember ? (
+                      <Badge variant="success">Member</Badge>
+                    ) : (
+                      <Badge>Subscriber</Badge>
+                    )}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <button
+                      class="unsubscribe-btn px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                      data-id={sub.id}
+                      data-email={sub.email}
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )}
+</AdminLayout>
+
+<script>
+  // Export to CSV
+  const exportBtn = document.getElementById('export-btn');
+  exportBtn?.addEventListener('click', () => {
+    const table = document.getElementById('subscribers-table') as HTMLTableElement;
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tbody tr');
+    const csvData: string[] = ['Email,Name,Source,Subscribed,Status'];
+
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      const email = cells[0]?.textContent?.trim() || '';
+      const name = cells[1]?.textContent?.trim() || '';
+      const source = cells[2]?.textContent?.trim() || '';
+      const subscribed = cells[3]?.textContent?.trim() || '';
+      const status = cells[4]?.textContent?.trim() || '';
+
+      // Escape commas and quotes in CSV
+      const escapeCsv = (str: string) => {
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      csvData.push([
+        escapeCsv(email),
+        escapeCsv(name === '—' ? '' : name),
+        escapeCsv(source),
+        escapeCsv(subscribed),
+        escapeCsv(status),
+      ].join(','));
+    });
+
+    const csv = csvData.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `newsletter-subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Unsubscribe handlers
+  document.querySelectorAll('.unsubscribe-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const email = (btn as HTMLButtonElement).dataset.email;
+
+      if (!confirm(`Remove ${email} from the newsletter?`)) return;
+
+      const response = await fetch('/api/admin/subscribers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to remove subscriber');
+      }
+    });
+  });
+</script>

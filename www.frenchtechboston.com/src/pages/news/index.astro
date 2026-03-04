@@ -1,0 +1,107 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Container from '../../components/common/Container.astro';
+import Section from '../../components/common/Section.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+// Default fallback articles
+let articles: any[] = [
+  {
+    title: 'French Tech Boston Welcomes 50 New Members in 2025',
+    excerpt: 'Our community continues to grow with founders and executives joining from across the Boston tech ecosystem.',
+    date: '2026-01-15',
+    category: 'Community',
+    slug: 'new-members-2025',
+  },
+  {
+    title: 'Recap: Annual French Tech Connect Summit',
+    excerpt: 'Over 200 French entrepreneurs gathered in Boston for our biggest event of the year.',
+    date: '2025-11-20',
+    category: 'Events',
+    slug: 'french-tech-connect-recap',
+  },
+];
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+// Fetch from database
+if (supabaseAdmin) {
+  const { data } = await supabaseAdmin
+    .from('news')
+    .select('*')
+    .eq('is_published', true)
+    .order('published_at', { ascending: false });
+
+  if (data && data.length > 0) {
+    articles = data.map(a => ({
+      title: a.title,
+      excerpt: a.excerpt || '',
+      date: a.published_at || a.created_at,
+      category: a.category || 'News',
+      slug: a.slug,
+      image_url: a.image_url,
+      author_name: a.author_name,
+    }));
+  }
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+---
+
+<PublicLayout title="News" description="Latest news and updates from La French Tech Boston.">
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      <div class="max-w-3xl">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-6">News</h1>
+        <p class="text-xl text-white/70">
+          Latest updates from La French Tech Boston community.
+        </p>
+      </div>
+    </Container>
+  </Section>
+
+  <Section background="navy-gradient" padding="lg">
+    <Container>
+      {articles.length === 0 ? (
+        <Card variant="glass">
+          <p class="text-center text-gray-500 py-8">No news articles yet. Check back soon!</p>
+        </Card>
+      ) : (
+        <div class="grid md:grid-cols-2 gap-8">
+          {articles.map((article) => (
+            <Card variant="glass" hover padding="none">
+              {article.image_url && (
+                <img src={article.image_url} alt={article.title} class="w-full h-48 object-cover rounded-t-2xl" />
+              )}
+              <div class="p-6">
+                <div class="flex items-center gap-3 mb-3">
+                  <Badge>{article.category}</Badge>
+                  <span class="text-sm text-gray-500">{formatDate(article.date)}</span>
+                </div>
+                <h2 class="text-xl font-semibold text-ft-black mb-2">
+                  <a href={`/news/${article.slug}`} class="hover:text-ft-red transition-colors">
+                    {article.title}
+                  </a>
+                </h2>
+                <p class="text-gray-600">{article.excerpt}</p>
+                {article.author_name && (
+                  <p class="text-sm text-gray-400 mt-3">By {article.author_name}</p>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </Container>
+  </Section>
+</PublicLayout>

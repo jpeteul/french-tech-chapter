@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* La French Tech Boston — Official Brand Colors
+   Based on Charte d'usage de la marque French Tech (v1.0, Oct 2024)
+   Primary: Rouge Marianne #E1000F (Pantone 485C, RGB 225/0/15)
+*/
+@theme {
+  /* Primary palette */
+  --color-ft-red: #E1000F;
+  --color-ft-red-dark: #9D000A;
+  --color-ft-red-light: #F08087;
+  --color-ft-black: #000000;
+  --color-ft-gray: #E5E5E5;
+  --color-ft-white: #FFFFFF;
+
+  /* Complementary blues from French Tech guidelines */
+  --color-ft-navy: #1C1B3A;
+  --color-ft-blue: #2A2E6C;
+
+  /* Typography — Inter (free alternative to Gotham/Biotif) */
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family-display: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-ft-red);
+  outline-offset: 2px;
+}

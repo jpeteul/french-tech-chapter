@@ -1,0 +1,435 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import Button from '../../components/common/Button.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let resources: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('resources')
+    .select('*')
+    .order('display_order', { ascending: true });
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    resources = data || [];
+  }
+}
+
+const typeLabels: Record<string, string> = {
+  'guide': 'Guide',
+  'article': 'Article',
+  'link': 'Link',
+  'file': 'File',
+  'member_page': 'Member Page',
+};
+
+const typeColors: Record<string, string> = {
+  'guide': 'bg-blue-100 text-blue-800',
+  'article': 'bg-purple-100 text-purple-800',
+  'link': 'bg-green-100 text-green-800',
+  'file': 'bg-amber-100 text-amber-800',
+  'member_page': 'bg-red-100 text-red-800',
+};
+---
+
+<AdminLayout title="Manage Resources">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Manage Resources</h1>
+      <p class="text-white/70 mt-2">
+        Create and manage guides, articles, and downloadable resources
+      </p>
+    </div>
+    <Button variant="primary" id="add-resource-btn">
+      + Add Resource
+    </Button>
+  </div>
+
+  {error && (
+    <div class="mb-6 p-4 backdrop-blur-xl bg-red-50/80 border border-red-200/50 rounded-xl text-red-700 text-sm">
+      {error}
+    </div>
+  )}
+
+  <!-- Resources List -->
+  <Card variant="glass" padding="none">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-white/40 border-b border-white/40">
+          <tr>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Order</th>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Resource</th>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Access</th>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/40">
+          {resources.length === 0 ? (
+            <tr>
+              <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                No resources yet. Click "Add Resource" to create one.
+              </td>
+            </tr>
+          ) : (
+            resources.map((resource) => (
+              <tr class="hover:bg-white/40 transition-colors">
+                <td class="px-6 py-4 text-sm text-gray-500">
+                  {resource.display_order}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">{resource.icon}</span>
+                    <div>
+                      <div class="font-medium text-ft-black">{resource.title}</div>
+                      <div class="text-sm text-gray-500 truncate max-w-xs">{resource.description}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class={`inline-block px-2 py-1 text-xs font-medium rounded-full ${typeColors[resource.type]}`}>
+                    {typeLabels[resource.type]}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-wrap gap-1">
+                    {resource.is_gated && (
+                      <Badge variant="warning">Email Gated</Badge>
+                    )}
+                    {resource.is_members_only && (
+                      <Badge variant="info">Members Only</Badge>
+                    )}
+                    {resource.is_featured && (
+                      <Badge variant="success">Featured</Badge>
+                    )}
+                    {!resource.is_gated && !resource.is_members_only && (
+                      <Badge>Public</Badge>
+                    )}
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  {resource.is_published ? (
+                    <Badge variant="success">Published</Badge>
+                  ) : (
+                    <Badge variant="warning">Draft</Badge>
+                  )}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <button
+                      class="edit-btn text-sm text-ft-red hover:underline"
+                      data-resource={JSON.stringify(resource)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      class="delete-btn text-sm text-gray-500 hover:text-red-600"
+                      data-id={resource.id}
+                      data-title={resource.title}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </Card>
+</AdminLayout>
+
+<!-- Add/Edit Modal -->
+<div id="resource-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-gray-200">
+      <h2 id="modal-title" class="text-xl font-bold text-ft-black">Add Resource</h2>
+    </div>
+
+    <form id="resource-form" class="p-6 space-y-4">
+      <input type="hidden" id="resource-id" name="id" />
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="title" class="block text-sm font-medium text-ft-black mb-1">Title *</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="Resource title"
+          />
+        </div>
+
+        <div>
+          <label for="icon" class="block text-sm font-medium text-ft-black mb-1">Icon (emoji)</label>
+          <input
+            type="text"
+            id="icon"
+            name="icon"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="📄"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm font-medium text-ft-black mb-1">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          rows="2"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none"
+          placeholder="Brief description of the resource"
+        ></textarea>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="type" class="block text-sm font-medium text-ft-black mb-1">Type *</label>
+          <select
+            id="type"
+            name="type"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+          >
+            <option value="">Select type</option>
+            <option value="guide">Guide</option>
+            <option value="article">Article</option>
+            <option value="file">File/Download</option>
+            <option value="link">External Link</option>
+            <option value="member_page">Member Page</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="slug" class="block text-sm font-medium text-ft-black mb-1">Slug (for articles)</label>
+          <input
+            type="text"
+            id="slug"
+            name="slug"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="my-article"
+          />
+        </div>
+      </div>
+
+      <div id="link-url-field">
+        <label for="link_url" class="block text-sm font-medium text-ft-black mb-1">Link URL</label>
+        <input
+          type="text"
+          id="link_url"
+          name="link_url"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+          placeholder="https://... or /members/investors"
+        />
+      </div>
+
+      <div id="file-url-field">
+        <label for="file_url" class="block text-sm font-medium text-ft-black mb-1">File URL</label>
+        <input
+          type="text"
+          id="file_url"
+          name="file_url"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+          placeholder="/files/handbook.pdf"
+        />
+      </div>
+
+      <div id="content-field">
+        <label for="content" class="block text-sm font-medium text-ft-black mb-1">Content (Markdown supported)</label>
+        <textarea
+          id="content"
+          name="content"
+          rows="12"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red font-mono text-sm"
+          placeholder="# Heading&#10;&#10;Your content here. Supports **bold**, *italic*, [links](url), and bullet lists:&#10;&#10;- Item one&#10;- Item two"
+        ></textarea>
+        <p class="text-xs text-gray-500 mt-1">Supports: # headings, **bold**, *italic*, [links](url), and - bullet lists</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="display_order" class="block text-sm font-medium text-ft-black mb-1">Display Order</label>
+          <input
+            type="number"
+            id="display_order"
+            name="display_order"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            placeholder="0"
+            value="0"
+          />
+        </div>
+
+        <div class="flex items-end">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="is_published" name="is_published" checked class="rounded text-ft-red focus:ring-ft-red" />
+            <span class="text-sm text-ft-black">Published</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="is_gated" name="is_gated" class="rounded text-ft-red focus:ring-ft-red" />
+          <span class="text-sm text-ft-black">Email Gated</span>
+        </label>
+
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="is_members_only" name="is_members_only" class="rounded text-ft-red focus:ring-ft-red" />
+          <span class="text-sm text-ft-black">Members Only</span>
+        </label>
+
+        <label class="flex items-center gap-2">
+          <input type="checkbox" id="is_featured" name="is_featured" class="rounded text-ft-red focus:ring-ft-red" />
+          <span class="text-sm text-ft-black">Featured</span>
+        </label>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <Button type="button" variant="outline" id="cancel-btn">Cancel</Button>
+        <Button type="submit" variant="primary">Save Resource</Button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('resource-modal') as HTMLDivElement;
+  const form = document.getElementById('resource-form') as HTMLFormElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLElement;
+  const addBtn = document.getElementById('add-resource-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const typeSelect = document.getElementById('type') as HTMLSelectElement;
+  const linkUrlField = document.getElementById('link-url-field') as HTMLDivElement;
+  const fileUrlField = document.getElementById('file-url-field') as HTMLDivElement;
+  const contentField = document.getElementById('content-field') as HTMLDivElement;
+
+  // Show/hide fields based on type
+  function updateFieldsVisibility() {
+    const type = typeSelect.value;
+    linkUrlField.style.display = (type === 'link' || type === 'member_page') ? 'block' : 'none';
+    fileUrlField.style.display = (type === 'file') ? 'block' : 'none';
+    contentField.style.display = (type === 'article' || type === 'guide') ? 'block' : 'none';
+  }
+
+  typeSelect?.addEventListener('change', updateFieldsVisibility);
+
+  function openModal(resource?: any) {
+    form.reset();
+    (document.getElementById('resource-id') as HTMLInputElement).value = '';
+
+    if (resource) {
+      modalTitle.textContent = 'Edit Resource';
+      (document.getElementById('resource-id') as HTMLInputElement).value = resource.id;
+      (document.getElementById('title') as HTMLInputElement).value = resource.title || '';
+      (document.getElementById('description') as HTMLTextAreaElement).value = resource.description || '';
+      (document.getElementById('icon') as HTMLInputElement).value = resource.icon || '';
+      (document.getElementById('type') as HTMLSelectElement).value = resource.type || '';
+      (document.getElementById('slug') as HTMLInputElement).value = resource.slug || '';
+      (document.getElementById('link_url') as HTMLInputElement).value = resource.link_url || '';
+      (document.getElementById('file_url') as HTMLInputElement).value = resource.file_url || '';
+      (document.getElementById('content') as HTMLTextAreaElement).value = resource.content || '';
+      (document.getElementById('display_order') as HTMLInputElement).value = resource.display_order?.toString() || '0';
+      (document.getElementById('is_published') as HTMLInputElement).checked = resource.is_published;
+      (document.getElementById('is_gated') as HTMLInputElement).checked = resource.is_gated;
+      (document.getElementById('is_members_only') as HTMLInputElement).checked = resource.is_members_only;
+      (document.getElementById('is_featured') as HTMLInputElement).checked = resource.is_featured;
+    } else {
+      modalTitle.textContent = 'Add Resource';
+    }
+
+    updateFieldsVisibility();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  addBtn?.addEventListener('click', () => openModal());
+  cancelBtn?.addEventListener('click', closeModal);
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Edit buttons
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const resource = JSON.parse((btn as HTMLElement).dataset.resource || '{}');
+      openModal(resource);
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const el = btn as HTMLElement;
+      const id = el.dataset.id;
+      const title = el.dataset.title;
+
+      if (confirm(`Are you sure you want to delete "${title}"?`)) {
+        const response = await fetch(`/api/admin/resources?id=${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to delete resource');
+        }
+      }
+    });
+  });
+
+  // Form submission
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const id = formData.get('id');
+
+    const data = {
+      id: id || undefined,
+      title: formData.get('title'),
+      description: formData.get('description'),
+      icon: formData.get('icon') || '📄',
+      type: formData.get('type'),
+      slug: formData.get('slug') || null,
+      link_url: formData.get('link_url') || null,
+      file_url: formData.get('file_url') || null,
+      content: formData.get('content') || null,
+      display_order: parseInt(formData.get('display_order') as string) || 0,
+      is_published: formData.get('is_published') === 'on',
+      is_gated: formData.get('is_gated') === 'on',
+      is_members_only: formData.get('is_members_only') === 'on',
+      is_featured: formData.get('is_featured') === 'on',
+    };
+
+    const method = id ? 'PUT' : 'POST';
+    const response = await fetch('/api/admin/resources', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const result = await response.json();
+      alert(result.error || 'Failed to save resource');
+    }
+  });
+</script>

@@ -1,0 +1,600 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Button from '../../components/common/Button.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let events: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('events')
+    .select('*')
+    .order('date', { ascending: false });
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    events = data || [];
+  }
+}
+
+const now = new Date();
+const upcomingEvents = events.filter(e => new Date(e.date) >= now);
+const pastEvents = events.filter(e => new Date(e.date) < now);
+---
+
+<AdminLayout title="Manage Events">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Manage Events</h1>
+      <p class="text-white/70 mt-2">
+        Create, edit, and manage community events
+      </p>
+    </div>
+    <button
+      id="add-event-btn"
+      class="px-4 py-2 bg-ft-red text-white font-medium rounded-xl hover:bg-ft-red/90 transition-all duration-300 shadow-lg shadow-ft-red/25"
+    >
+      + Add Event
+    </button>
+  </div>
+
+  {error && (
+    <Card variant="glass" class="mb-6 border-red-500/50">
+      <p class="text-red-600">{error}</p>
+    </Card>
+  )}
+
+  <!-- Invite Modal -->
+  <div id="invite-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="backdrop-blur-xl bg-white/95 rounded-2xl p-8 border border-white/50 shadow-2xl max-w-lg w-full">
+      <h2 class="text-2xl font-bold text-ft-black mb-2">Send Event Invites</h2>
+      <p id="invite-event-title" class="text-gray-600 mb-6"></p>
+
+      <input type="hidden" id="invite-event-id" />
+
+      <!-- Test Email Section -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-ft-black mb-2">Test Email First</label>
+        <div class="flex gap-2">
+          <input
+            type="email"
+            id="test-invite-email"
+            placeholder="your@email.com"
+            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+          />
+          <button
+            type="button"
+            id="send-test-invite-btn"
+            class="px-4 py-2 bg-ft-navy text-white font-medium rounded-lg hover:bg-ft-navy/90 transition-colors whitespace-nowrap"
+          >
+            Send Test
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Send a test invite to verify the email looks correct</p>
+      </div>
+
+      <!-- Divider -->
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-200"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-white text-gray-500">or</span>
+        </div>
+      </div>
+
+      <!-- Send to All Section -->
+      <div class="bg-amber-50 rounded-xl p-4 mb-6">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p class="text-sm text-amber-800 font-medium">Send to all active members</p>
+            <p class="text-xs text-amber-700 mt-1">This will send the invite to all active members in the directory. Emails will be sent in batches to avoid spam filters.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          type="button"
+          id="send-all-invite-btn"
+          class="flex-1 px-4 py-3 bg-ft-red text-white font-medium rounded-lg hover:bg-ft-red/90 transition-colors"
+        >
+          Send to All Members
+        </button>
+        <button
+          type="button"
+          id="cancel-invite-btn"
+          class="px-4 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <p id="invite-status" class="text-sm text-center mt-4 hidden"></p>
+    </div>
+  </div>
+
+  <!-- Add/Edit Event Modal -->
+  <div id="event-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="backdrop-blur-xl bg-white/95 rounded-2xl p-8 border border-white/50 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <h2 id="modal-title" class="text-2xl font-bold text-ft-black mb-6">Add Event</h2>
+      <form id="event-form" class="space-y-4">
+        <input type="hidden" id="event-id" name="id" />
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-ft-black mb-1">Title *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="Event title"
+            />
+          </div>
+          <div>
+            <label for="slug" class="block text-sm font-medium text-ft-black mb-1">Slug *</label>
+            <input
+              type="text"
+              id="slug"
+              name="slug"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="event-slug"
+            />
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="date" class="block text-sm font-medium text-ft-black mb-1">Date *</label>
+            <input
+              type="datetime-local"
+              id="date"
+              name="date"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+            />
+          </div>
+          <div>
+            <label for="location" class="block text-sm font-medium text-ft-black mb-1">Location *</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="Event location"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-ft-black mb-1">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red resize-none"
+            placeholder="Event description..."
+          ></textarea>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label for="registration_url" class="block text-sm font-medium text-ft-black mb-1">Registration URL</label>
+            <input
+              type="url"
+              id="registration_url"
+              name="registration_url"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label for="image_url" class="block text-sm font-medium text-ft-black mb-1">Image URL</label>
+            <input
+              type="url"
+              id="image_url"
+              name="image_url"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ft-red focus:border-ft-red"
+              placeholder="/images/events/..."
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="is_members_only"
+              name="is_members_only"
+              class="h-4 w-4 text-ft-red focus:ring-ft-red border-gray-300 rounded"
+            />
+            <span class="text-sm text-gray-600">Members only event</span>
+          </label>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2 bg-ft-red text-white font-medium rounded-lg hover:bg-ft-red/90 transition-colors"
+          >
+            Save Event
+          </button>
+          <button
+            type="button"
+            id="cancel-btn"
+            class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upcoming Events -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-white mb-4">Upcoming Events ({upcomingEvents.length})</h2>
+    {upcomingEvents.length === 0 ? (
+      <Card variant="glass">
+        <p class="text-gray-500 text-center py-4">No upcoming events</p>
+      </Card>
+    ) : (
+      <div class="space-y-4">
+        {upcomingEvents.map((event) => (
+          <Card variant="glass" hover>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-lg font-semibold text-ft-black">{event.title}</h3>
+                  {event.is_members_only && (
+                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                      Members Only
+                    </span>
+                  )}
+                </div>
+                <p class="text-sm text-ft-red font-medium">
+                  {new Date(event.date).toLocaleDateString('en-US', {
+                    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+                  })}
+                </p>
+                <p class="text-sm text-gray-500">{event.location}</p>
+                {event.description && (
+                  <p class="text-sm text-gray-600 mt-2 line-clamp-2">{event.description}</p>
+                )}
+              </div>
+              <div class="flex gap-2 ml-4">
+                <button
+                  class="invite-btn px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-600 hover:text-white transition-colors"
+                  data-id={event.id}
+                  data-title={event.title}
+                >
+                  Invite
+                </button>
+                <button
+                  class="edit-btn px-3 py-1 text-sm bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-event={JSON.stringify(event)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="delete-btn px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={event.id}
+                  data-title={event.title}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <!-- Past Events -->
+  <div>
+    <h2 class="text-xl font-semibold text-white mb-4">Past Events ({pastEvents.length})</h2>
+    {pastEvents.length === 0 ? (
+      <Card variant="glass">
+        <p class="text-gray-500 text-center py-4">No past events</p>
+      </Card>
+    ) : (
+      <div class="space-y-4">
+        {pastEvents.map((event) => (
+          <Card variant="glass" class="opacity-75">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-lg font-semibold text-ft-black">{event.title}</h3>
+                  {event.is_members_only && (
+                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                      Members Only
+                    </span>
+                  )}
+                </div>
+                <p class="text-sm text-gray-500">
+                  {new Date(event.date).toLocaleDateString('en-US', {
+                    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+                  })}
+                </p>
+                <p class="text-sm text-gray-400">{event.location}</p>
+              </div>
+              <div class="flex gap-2 ml-4">
+                <button
+                  class="edit-btn px-3 py-1 text-sm bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+                  data-event={JSON.stringify(event)}
+                >
+                  Edit
+                </button>
+                <button
+                  class="delete-btn px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  data-id={event.id}
+                  data-title={event.title}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  const modal = document.getElementById('event-modal') as HTMLDivElement;
+  const modalTitle = document.getElementById('modal-title') as HTMLHeadingElement;
+  const form = document.getElementById('event-form') as HTMLFormElement;
+  const addBtn = document.getElementById('add-event-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+
+  // Form fields
+  const eventId = document.getElementById('event-id') as HTMLInputElement;
+  const titleField = document.getElementById('title') as HTMLInputElement;
+  const slugField = document.getElementById('slug') as HTMLInputElement;
+  const dateField = document.getElementById('date') as HTMLInputElement;
+  const locationField = document.getElementById('location') as HTMLInputElement;
+  const descriptionField = document.getElementById('description') as HTMLTextAreaElement;
+  const registrationUrlField = document.getElementById('registration_url') as HTMLInputElement;
+  const imageUrlField = document.getElementById('image_url') as HTMLInputElement;
+  const membersOnlyField = document.getElementById('is_members_only') as HTMLInputElement;
+
+  // Auto-generate slug from title
+  titleField?.addEventListener('input', () => {
+    if (!eventId.value) {
+      slugField.value = titleField.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    }
+  });
+
+  // Open modal for adding
+  addBtn?.addEventListener('click', () => {
+    modalTitle.textContent = 'Add Event';
+    form.reset();
+    eventId.value = '';
+    modal.classList.remove('hidden');
+  });
+
+  // Close modal
+  cancelBtn?.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Edit buttons
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const event = JSON.parse((btn as HTMLButtonElement).dataset.event || '{}');
+      modalTitle.textContent = 'Edit Event';
+      eventId.value = event.id;
+      titleField.value = event.title || '';
+      slugField.value = event.slug || '';
+      dateField.value = event.date ? new Date(event.date).toISOString().slice(0, 16) : '';
+      locationField.value = event.location || '';
+      descriptionField.value = event.description || '';
+      registrationUrlField.value = event.registration_url || '';
+      imageUrlField.value = event.image_url || '';
+      membersOnlyField.checked = event.is_members_only || false;
+      modal.classList.remove('hidden');
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const title = (btn as HTMLButtonElement).dataset.title;
+
+      if (confirm(`Are you sure you want to delete "${title}"?`)) {
+        const response = await fetch(`/api/admin/events?id=${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          alert(data.error || 'Failed to delete event');
+        }
+      }
+    });
+  });
+
+  // Form submission
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const isEdit = !!eventId.value;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const body = {
+      id: eventId.value || undefined,
+      title: titleField.value,
+      slug: slugField.value,
+      date: new Date(dateField.value).toISOString(),
+      location: locationField.value,
+      description: descriptionField.value,
+      registration_url: registrationUrlField.value || null,
+      image_url: imageUrlField.value || null,
+      is_members_only: membersOnlyField.checked,
+    };
+
+    const response = await fetch('/api/admin/events', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const data = await response.json();
+      alert(data.error || 'Failed to save event');
+    }
+  });
+
+  // Invite modal elements
+  const inviteModal = document.getElementById('invite-modal') as HTMLDivElement;
+  const inviteEventId = document.getElementById('invite-event-id') as HTMLInputElement;
+  const inviteEventTitle = document.getElementById('invite-event-title') as HTMLParagraphElement;
+  const testInviteEmail = document.getElementById('test-invite-email') as HTMLInputElement;
+  const sendTestInviteBtn = document.getElementById('send-test-invite-btn') as HTMLButtonElement;
+  const sendAllInviteBtn = document.getElementById('send-all-invite-btn') as HTMLButtonElement;
+  const cancelInviteBtn = document.getElementById('cancel-invite-btn') as HTMLButtonElement;
+  const inviteStatus = document.getElementById('invite-status') as HTMLParagraphElement;
+
+  // Open invite modal
+  document.querySelectorAll('.invite-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const title = (btn as HTMLButtonElement).dataset.title;
+      inviteEventId.value = id || '';
+      inviteEventTitle.textContent = title || '';
+      testInviteEmail.value = '';
+      inviteStatus.classList.add('hidden');
+      sendTestInviteBtn.disabled = false;
+      sendAllInviteBtn.disabled = false;
+      inviteModal.classList.remove('hidden');
+    });
+  });
+
+  // Close invite modal
+  cancelInviteBtn?.addEventListener('click', () => {
+    inviteModal.classList.add('hidden');
+  });
+
+  inviteModal?.addEventListener('click', (e) => {
+    if (e.target === inviteModal) {
+      inviteModal.classList.add('hidden');
+    }
+  });
+
+  // Send test invite
+  sendTestInviteBtn?.addEventListener('click', async () => {
+    const email = testInviteEmail.value.trim();
+    if (!email) {
+      inviteStatus.textContent = 'Please enter an email address';
+      inviteStatus.className = 'text-sm text-center mt-4 text-red-500';
+      inviteStatus.classList.remove('hidden');
+      return;
+    }
+
+    sendTestInviteBtn.disabled = true;
+    sendTestInviteBtn.textContent = 'Sending...';
+    inviteStatus.classList.add('hidden');
+
+    try {
+      const response = await fetch('/api/admin/event-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: inviteEventId.value,
+          testEmail: email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        inviteStatus.textContent = data.message || 'Test invite sent!';
+        inviteStatus.className = 'text-sm text-center mt-4 text-green-600';
+      } else {
+        inviteStatus.textContent = data.error || 'Failed to send';
+        inviteStatus.className = 'text-sm text-center mt-4 text-red-500';
+      }
+      inviteStatus.classList.remove('hidden');
+    } catch (error) {
+      inviteStatus.textContent = 'Failed to send test invite';
+      inviteStatus.className = 'text-sm text-center mt-4 text-red-500';
+      inviteStatus.classList.remove('hidden');
+    } finally {
+      sendTestInviteBtn.disabled = false;
+      sendTestInviteBtn.textContent = 'Send Test';
+    }
+  });
+
+  // Send to all members
+  sendAllInviteBtn?.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to send this invite to ALL active members?')) {
+      return;
+    }
+
+    sendAllInviteBtn.disabled = true;
+    sendTestInviteBtn.disabled = true;
+    sendAllInviteBtn.textContent = 'Sending...';
+    inviteStatus.textContent = 'Sending invites in batches, please wait...';
+    inviteStatus.className = 'text-sm text-center mt-4 text-gray-600';
+    inviteStatus.classList.remove('hidden');
+
+    try {
+      const response = await fetch('/api/admin/event-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: inviteEventId.value,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        inviteStatus.textContent = data.message || 'Invites sent!';
+        inviteStatus.className = 'text-sm text-center mt-4 text-green-600';
+        if (data.details?.failed > 0) {
+          inviteStatus.textContent += ` (${data.details.failed} failed)`;
+        }
+      } else {
+        inviteStatus.textContent = data.error || 'Failed to send invites';
+        inviteStatus.className = 'text-sm text-center mt-4 text-red-500';
+      }
+      inviteStatus.classList.remove('hidden');
+    } catch (error) {
+      inviteStatus.textContent = 'Failed to send invites';
+      inviteStatus.className = 'text-sm text-center mt-4 text-red-500';
+      inviteStatus.classList.remove('hidden');
+    } finally {
+      sendAllInviteBtn.disabled = false;
+      sendTestInviteBtn.disabled = false;
+      sendAllInviteBtn.textContent = 'Send to All Members';
+    }
+  });
+</script>

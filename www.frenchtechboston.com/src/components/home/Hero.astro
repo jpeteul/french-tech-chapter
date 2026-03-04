@@ -1,0 +1,51 @@
+---
+import Container from '../common/Container.astro';
+import Button from '../common/Button.astro';
+---
+
+<section class="relative text-white overflow-hidden min-h-[600px] flex items-center">
+  <!-- Background Image with Overlay -->
+  <div class="absolute inset-0">
+    <img
+      src="/images/events/event-2.avif"
+      alt="French Tech Boston community event"
+      class="w-full h-full object-cover"
+    />
+    <!-- Dark overlay for text readability -->
+    <div class="absolute inset-0 bg-gradient-to-r from-ft-navy/80 via-ft-navy/65 to-ft-navy/50"></div>
+  </div>
+
+  <!-- Decorative gradient blobs (on top of image) -->
+  <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-ft-red/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+  <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-ft-blue/30 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+
+  <Container class="relative py-20 sm:py-32">
+    <div class="max-w-4xl">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-ft-red/20 backdrop-blur-sm rounded-full border border-ft-red/30">
+        <span class="w-2 h-2 bg-ft-red rounded-full animate-pulse"></span>
+        <span class="text-sm text-ft-red font-medium">Boston's French Tech Community</span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 drop-shadow-lg">
+        We Are <span class="text-ft-red">La French Tech</span> Boston
+      </h1>
+
+      <!-- Subheadline -->
+      <p class="text-xl sm:text-2xl text-gray-200 mb-8 max-w-2xl drop-shadow-md">
+        A community of entrepreneurs, tech executives, and innovators building the bridge between France and the US.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4">
+        <Button href="/apply" variant="primary" size="lg">
+          Join Our Community
+        </Button>
+        <Button href="/about" variant="outline" size="lg">
+          Learn More
+        </Button>
+      </div>
+    </div>
+  </Container>
+</section>

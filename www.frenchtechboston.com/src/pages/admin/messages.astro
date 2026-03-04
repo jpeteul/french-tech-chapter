@@ -1,0 +1,168 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Card from '../../components/common/Card.astro';
+import Badge from '../../components/common/Badge.astro';
+import { getSupabaseAdmin } from '../../lib/supabase';
+
+export const prerender = false;
+
+let messages: any[] = [];
+let error = '';
+
+const supabaseAdmin = getSupabaseAdmin(Astro.locals.runtime);
+
+if (supabaseAdmin) {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from('contact_submissions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (fetchError) {
+    error = fetchError.message;
+  } else {
+    messages = data || [];
+  }
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function getSubjectLabel(subject: string) {
+  const labels: Record<string, string> = {
+    membership: 'Membership',
+    sponsorship: 'Sponsorship',
+    events: 'Events',
+    media: 'Media/Press',
+    other: 'Other',
+  };
+  return labels[subject] || subject;
+}
+
+function getSubjectVariant(subject: string) {
+  const variants: Record<string, string> = {
+    membership: 'success',
+    sponsorship: 'warning',
+    events: 'default',
+    media: 'default',
+    other: 'default',
+  };
+  return variants[subject] || 'default';
+}
+---
+
+<AdminLayout title="Contact Messages">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Contact Messages</h1>
+    <p class="text-white/70 mt-2">
+      {messages.length} message{messages.length !== 1 ? 's' : ''} received
+    </p>
+  </div>
+
+  {error && (
+    <Card variant="glass" class="mb-6 border-red-500/50">
+      <p class="text-red-600">{error}</p>
+    </Card>
+  )}
+
+  {messages.length === 0 ? (
+    <Card variant="glass">
+      <p class="text-gray-500 text-center py-8">No messages yet</p>
+    </Card>
+  ) : (
+    <div class="space-y-4">
+      {messages.map((msg) => (
+        <Card variant="glass" hover>
+          <div class="flex justify-between items-start gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 mb-2 flex-wrap">
+                <span class="font-semibold text-ft-black">{msg.name}</span>
+                <Badge variant={getSubjectVariant(msg.subject) as any}>
+                  {getSubjectLabel(msg.subject)}
+                </Badge>
+                <span class="text-sm text-gray-400">{formatDate(msg.created_at)}</span>
+              </div>
+              <a href={`mailto:${msg.email}`} class="text-sm text-ft-red hover:underline mb-3 block">
+                {msg.email}
+              </a>
+              <p class="text-gray-600 whitespace-pre-wrap message-preview" data-full={msg.message}>
+                {msg.message.length > 200 ? msg.message.slice(0, 200) + '...' : msg.message}
+              </p>
+              {msg.message.length > 200 && (
+                <button class="expand-btn text-sm text-ft-red hover:underline mt-2">
+                  Show more
+                </button>
+              )}
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+              <a
+                href={`mailto:${msg.email}?subject=Re: ${getSubjectLabel(msg.subject)}`}
+                class="px-3 py-1 text-sm bg-ft-navy/10 text-ft-navy rounded-lg hover:bg-ft-navy hover:text-white transition-colors"
+              >
+                Reply
+              </a>
+              <button
+                class="delete-btn px-3 py-1 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                data-id={msg.id}
+                data-name={msg.name}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  )}
+</AdminLayout>
+
+<script>
+  // Expand/collapse long messages
+  document.querySelectorAll('.expand-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.card, [class*="backdrop-blur"]');
+      const preview = card?.querySelector('.message-preview') as HTMLElement;
+      if (!preview) return;
+
+      const fullMessage = preview.dataset.full || '';
+      const isExpanded = btn.textContent === 'Show less';
+
+      if (isExpanded) {
+        preview.textContent = fullMessage.slice(0, 200) + '...';
+        btn.textContent = 'Show more';
+      } else {
+        preview.textContent = fullMessage;
+        btn.textContent = 'Show less';
+      }
+    });
+  });
+
+  // Delete handlers
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLButtonElement).dataset.id;
+      const name = (btn as HTMLButtonElement).dataset.name;
+
+      if (!confirm(`Delete message from ${name}?`)) return;
+
+      const response = await fetch('/api/admin/messages', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete message');
+      }
+    });
+  });
+</script>
