@@ -40,7 +40,7 @@ if (supabaseAdmin && userEmail) {
   // Look for a member row matching this email (case-insensitive, bypasses RLS)
   const { data: member } = await supabaseAdmin
     .from('members')
-    .select('id, user_id')
+    .select('id, user_id, login_count')
     .ilike('email', userEmail)
     .single();
 
@@ -49,6 +49,17 @@ if (supabaseAdmin && userEmail) {
     await supabaseAdmin
       .from('members')
       .update({ user_id: userId })
+      .eq('id', member.id);
+  }
+
+  if (member) {
+    // Update login activity tracking
+    await supabaseAdmin
+      .from('members')
+      .update({
+        last_seen_at: new Date().toISOString(),
+        login_count: (member.login_count || 0) + 1,
+      })
       .eq('id', member.id);
   }
 
