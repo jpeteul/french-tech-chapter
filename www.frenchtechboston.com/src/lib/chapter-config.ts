@@ -52,6 +52,13 @@ export interface ChapterConfig {
     region: string;
     country: string;
   };
+
+  // Federation settings (optional)
+  federation?: {
+    enabled: boolean;           // Whether this chapter participates in federation
+    allowIncomingRequests: boolean;  // Accept intro requests from other chapters
+    allowOutgoingRequests: boolean;  // Allow members to request intros from other chapters
+  };
 }
 
 /**
@@ -97,6 +104,13 @@ export const CHAPTER: ChapterConfig = {
     locality: 'Boston',
     region: 'MA',
     country: 'US',
+  },
+
+  // Federation - Cross-chapter investor directory sharing
+  federation: {
+    enabled: true,
+    allowIncomingRequests: true,
+    allowOutgoingRequests: true,
   },
 };
 

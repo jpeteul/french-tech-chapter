@@ -7,6 +7,18 @@ import {
   type InvestorSector,
   type InvestorGeo,
 } from '../../lib/supabase';
+import ChapterSelector from '../federation/ChapterSelector';
+import { FederatedDirectoryBanner, CrossChapterIntroIndicator } from '../federation/CrossChapterBadge';
+
+// Chapter options - matches network-registry.ts
+// In production, this would be fetched or imported from the registry
+const CHAPTER_OPTIONS = [
+  { slug: 'boston', name: 'La French Tech Boston (Local)', isCurrent: true },
+  { slug: 'sf', name: 'La French Tech San Francisco', isCurrent: false },
+  { slug: 'nyc', name: 'La French Tech New York', isCurrent: false },
+];
+
+const LOCAL_CHAPTER_SLUG = 'boston';
 
 interface Member {
   id: string;
@@ -16,12 +28,19 @@ interface Member {
   linkedin: string | null;
 }
 
+interface FederatedChapterInfo {
+  slug: string;
+  name: string;
+}
+
 interface InvestorContact {
   id: string;
   member_id: string;
   added_at: string;
   member: Member;
   is_current_user: boolean;
+  is_federated?: boolean;
+  federated_chapter?: FederatedChapterInfo;
 }
 
 interface Investor {
@@ -37,24 +56,33 @@ interface Investor {
   notes: string | null;
   contact_count: number;
   contacts: InvestorContact[];
+  is_federated?: boolean;
+  federated_chapter?: FederatedChapterInfo;
 }
 
 interface IntroRequestModalProps {
   investor: Investor;
   contact: InvestorContact;
+  selectedChapter: string;
   onClose: () => void;
   onSubmit: (message: string) => Promise<void>;
 }
 
-function IntroRequestModal({ investor, contact, onClose, onSubmit }: IntroRequestModalProps) {
+function IntroRequestModal({ investor, contact, selectedChapter, onClose, onSubmit }: IntroRequestModalProps) {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const isCrossChapter = selectedChapter !== LOCAL_CHAPTER_SLUG;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) {
       setError('Please explain why you believe you are a fit for this investor');
+      return;
+    }
+    if (message.trim().length < 50) {
+      setError('Please provide a more detailed message (at least 50 characters)');
       return;
     }
     setIsSubmitting(true);
@@ -69,6 +97,8 @@ function IntroRequestModal({ investor, contact, onClose, onSubmit }: IntroReques
     }
   };
 
+  const targetChapterName = CHAPTER_OPTIONS.find((c) => c.slug === selectedChapter)?.name || selectedChapter;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
@@ -82,6 +112,14 @@ function IntroRequestModal({ investor, contact, onClose, onSubmit }: IntroReques
           <p className="text-gray-600 text-sm mb-4">
             via {contact.member.name}{contact.member.company ? ` (${contact.member.company})` : ''}
           </p>
+
+          {/* Cross-chapter indicator */}
+          {isCrossChapter && (
+            <CrossChapterIntroIndicator
+              originChapterName="La French Tech Boston"
+              targetChapterName={targetChapterName}
+            />
+          )}
 
           {/* Golden Rule Reminder */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
@@ -107,6 +145,7 @@ function IntroRequestModal({ investor, contact, onClose, onSubmit }: IntroReques
             />
             <p className="text-xs text-gray-500 mt-1 mb-4">
               This message will be shared with {contact.member.name} to help them decide whether to make the introduction.
+              {isCrossChapter && ' Your email and LinkedIn will only be shared if they accept.'}
             </p>
 
             {error && (
@@ -157,12 +196,14 @@ function InvestorCard({
   onRequestIntro,
   expandedId,
   onToggleExpand,
+  isFederated,
 }: {
   investor: Investor;
   currentMemberId: string;
   onRequestIntro: (investor: Investor, contact: InvestorContact) => void;
   expandedId: string | null;
   onToggleExpand: (id: string) => void;
+  isFederated?: boolean;
 }) {
   const isExpanded = expandedId === investor.id;
   const isCurrentUserContact = investor.contacts.some((c) => c.is_current_user);
@@ -196,6 +237,14 @@ function InvestorCard({
             {isCurrentUserContact && (
               <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                 You know them
+              </span>
+            )}
+            {isFederated && investor.federated_chapter && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                {investor.federated_chapter.slug.toUpperCase()}
               </span>
             )}
             <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
@@ -255,16 +304,29 @@ function InvestorCard({
       {/* Expanded Contacts */}
       {isExpanded && (
         <div className="border-t border-gray-200 bg-gray-50 p-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Members who know this investor:</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            {isFederated ? `Members from ${investor.federated_chapter?.name || 'another chapter'} who know this investor:` : 'Members who know this investor:'}
+          </h4>
           <div className="space-y-3">
             {investor.contacts.map((contact) => (
               <div key={contact.id} className="flex items-center justify-between bg-white rounded-xl p-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${
+                    isFederated
+                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                      : 'bg-gradient-to-br from-red-500 to-rose-600'
+                  }`}>
                     {contact.member.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{contact.member.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900">{contact.member.name}</p>
+                      {contact.is_federated && contact.federated_chapter && (
+                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
+                          {contact.federated_chapter.slug.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">
                       {contact.member.role}{contact.member.company ? ` at ${contact.member.company}` : ''}
                     </p>
@@ -333,11 +395,19 @@ function MultiSelectChips<T extends string>({
   );
 }
 
-export default function InvestorDirectory() {
+interface InvestorDirectoryProps {
+  enableFederation?: boolean;
+}
+
+export default function InvestorDirectory({ enableFederation = true }: InvestorDirectoryProps) {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [currentMemberId, setCurrentMemberId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Federation state
+  const [selectedChapter, setSelectedChapter] = useState<string>(LOCAL_CHAPTER_SLUG);
+  const isFederatedView = selectedChapter !== LOCAL_CHAPTER_SLUG;
 
   // Search and filters
   const [search, setSearch] = useState('');
@@ -352,6 +422,7 @@ export default function InvestorDirectory() {
   const fetchInvestors = useCallback(async () => {
     setIsLoading(true);
     setError('');
+    setExpandedId(null);
 
     const params = new URLSearchParams();
     if (search) params.set('search', search);
@@ -359,7 +430,17 @@ export default function InvestorDirectory() {
     selectedSectors.forEach((s) => params.append('sector', s));
 
     try {
-      const res = await fetch(`/api/investors?${params.toString()}`);
+      let url: string;
+      if (isFederatedView) {
+        // Use federation proxy for other chapters
+        params.set('chapter', selectedChapter);
+        url = `/api/federation/proxy/investors?${params.toString()}`;
+      } else {
+        // Use local API for this chapter
+        url = `/api/investors?${params.toString()}`;
+      }
+
+      const res = await fetch(url);
       const data = await res.json();
 
       if (!res.ok) {
@@ -370,10 +451,11 @@ export default function InvestorDirectory() {
       setCurrentMemberId(data.member_id);
     } catch (err: any) {
       setError(err.message);
+      setInvestors([]);
     } finally {
       setIsLoading(false);
     }
-  }, [search, selectedStages, selectedSectors]);
+  }, [search, selectedStages, selectedSectors, selectedChapter, isFederatedView]);
 
   useEffect(() => {
     const debounce = setTimeout(fetchInvestors, 300);
@@ -383,14 +465,32 @@ export default function InvestorDirectory() {
   const handleRequestIntro = async (message: string) => {
     if (!introModal) return;
 
-    const res = await fetch('/api/investors/intro-requests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    let url: string;
+    let body: Record<string, any>;
+
+    if (isFederatedView) {
+      // Cross-chapter intro request via federation proxy
+      url = '/api/federation/proxy/intro-requests';
+      body = {
+        chapter: selectedChapter,
+        investorId: introModal.investor.id,
+        contactMemberId: introModal.contact.member_id,
+        message,
+      };
+    } else {
+      // Local intro request
+      url = '/api/investors/intro-requests';
+      body = {
         investor_id: introModal.investor.id,
         contact_id: introModal.contact.member_id,
         message,
-      }),
+      };
+    }
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -399,11 +499,47 @@ export default function InvestorDirectory() {
     }
   };
 
+  const handleChapterChange = (slug: string) => {
+    setSelectedChapter(slug);
+    setSearch('');
+    setSelectedStages([]);
+    setSelectedSectors([]);
+    setShowFilters(false);
+  };
+
   const stageOptions = Object.keys(STAGE_LABELS) as InvestorStage[];
   const sectorOptions = Object.keys(SECTOR_LABELS) as InvestorSector[];
+  const selectedChapterName = CHAPTER_OPTIONS.find((c) => c.slug === selectedChapter)?.name || selectedChapter;
 
   return (
     <div>
+      {/* Chapter Selector (Federation) */}
+      {enableFederation && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <ChapterSelector
+              chapters={CHAPTER_OPTIONS}
+              selectedChapter={selectedChapter}
+              onSelect={handleChapterChange}
+              disabled={isLoading}
+            />
+            {isFederatedView && (
+              <p className="text-sm text-blue-600">
+                Browsing investors from another chapter
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Federated View Banner */}
+      {isFederatedView && (
+        <FederatedDirectoryBanner
+          chapterName={selectedChapterName.replace(' (Local)', '')}
+          onSwitchToLocal={() => handleChapterChange(LOCAL_CHAPTER_SLUG)}
+        />
+      )}
+
       {/* Search and Filter Bar */}
       <div className="mb-6">
         <div className="flex gap-3 mb-4">
@@ -412,7 +548,7 @@ export default function InvestorDirectory() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by investor name or firm..."
+              placeholder={`Search ${isFederatedView ? selectedChapterName.replace(' (Local)', '') : 'local'} investors...`}
               className="w-full pl-10 pr-4 py-3 bg-white/90 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
             <svg
@@ -480,30 +616,45 @@ export default function InvestorDirectory() {
       {isLoading ? (
         <div className="text-center py-12">
           <div className="inline-block w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500 mt-3">Loading investors...</p>
+          <p className="text-gray-500 mt-3">
+            {isFederatedView ? `Loading investors from ${selectedChapterName.replace(' (Local)', '')}...` : 'Loading investors...'}
+          </p>
         </div>
       ) : error ? (
         <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl">
           {error}
+          {isFederatedView && (
+            <button
+              onClick={() => handleChapterChange(LOCAL_CHAPTER_SLUG)}
+              className="ml-2 underline hover:no-underline"
+            >
+              Switch to local directory
+            </button>
+          )}
         </div>
       ) : investors.length === 0 ? (
         <div className="text-center py-12 bg-white/50 rounded-2xl">
           <p className="text-gray-500 mb-4">
             {search || selectedStages.length > 0 || selectedSectors.length > 0
               ? 'No investors match your search criteria.'
-              : 'No investors in the directory yet.'}
+              : isFederatedView
+                ? `No investors found in ${selectedChapterName.replace(' (Local)', '')}'s directory.`
+                : 'No investors in the directory yet.'}
           </p>
-          <a
-            href="/members/investors/add"
-            className="inline-block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Add the first investor
-          </a>
+          {!isFederatedView && (
+            <a
+              href="/members/investors/add"
+              className="inline-block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Add the first investor
+            </a>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-gray-500">
             {investors.length} investor{investors.length === 1 ? '' : 's'} found
+            {isFederatedView && ` in ${selectedChapterName.replace(' (Local)', '')}`}
           </p>
           {investors.map((investor) => (
             <InvestorCard
@@ -513,6 +664,7 @@ export default function InvestorDirectory() {
               onRequestIntro={(inv, contact) => setIntroModal({ investor: inv, contact })}
               expandedId={expandedId}
               onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+              isFederated={isFederatedView}
             />
           ))}
         </div>
@@ -523,6 +675,7 @@ export default function InvestorDirectory() {
         <IntroRequestModal
           investor={introModal.investor}
           contact={introModal.contact}
+          selectedChapter={selectedChapter}
           onClose={() => setIntroModal(null)}
           onSubmit={handleRequestIntro}
         />
