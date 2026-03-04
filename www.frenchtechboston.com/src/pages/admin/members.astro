@@ -152,6 +152,7 @@ const inactiveMembers = members.filter(m => m.status === 'inactive');
             <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Member</th>
             <th class="text-left px-6 py-3 text-sm font-medium text-gray-500 hidden md:table-cell">Company</th>
             <th class="text-left px-6 py-3 text-sm font-medium text-gray-500 hidden lg:table-cell">Joined</th>
+            <th class="text-left px-6 py-3 text-sm font-medium text-gray-500 hidden lg:table-cell">Last Seen</th>
             <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
             <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Role</th>
             <th class="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
@@ -160,7 +161,7 @@ const inactiveMembers = members.filter(m => m.status === 'inactive');
         <tbody class="divide-y divide-white/40" id="members-table">
           {members.length === 0 && !error && (
             <tr>
-              <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                 No members yet. Click "Add Member" to add your first member.
               </td>
             </tr>
@@ -189,6 +190,9 @@ const inactiveMembers = members.filter(m => m.status === 'inactive');
               </td>
               <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">
                 {new Date(member.created_at).toLocaleDateString()}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell last-seen-cell" data-date={member.last_seen_at || ''}>
+                {member.last_seen_at ? 'Loading...' : 'Never'}
               </td>
               <td class="px-6 py-4">
                 <Badge variant={member.status === 'active' ? 'success' : 'default'}>
@@ -243,6 +247,30 @@ const inactiveMembers = members.filter(m => m.status === 'inactive');
 </AdminLayout>
 
 <script>
+  // Format relative time for last seen cells
+  function formatRelativeTime(dateStr: string): string {
+    if (!dateStr) return 'Never';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  }
+
+  // Update all last seen cells
+  document.querySelectorAll('.last-seen-cell').forEach(cell => {
+    const el = cell as HTMLElement;
+    const dateStr = el.dataset.date;
+    el.textContent = dateStr ? formatRelativeTime(dateStr) : 'Never';
+  });
+
   // Search and filter
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
   const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
