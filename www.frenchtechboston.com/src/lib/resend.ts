@@ -1,7 +1,6 @@
 import { Resend } from 'resend';
-import { getFromEmail } from './chapter-config';
 
-export const FROM_EMAIL = getFromEmail();
+export const FROM_EMAIL = 'La French Tech Boston <noreply@mail.frenchtech-boston.com>';
 
 type CloudflareRuntime = { env?: { RESEND_API_KEY?: string } };
 
@@ -13,4 +12,9 @@ export function getResend(runtime?: CloudflareRuntime): Resend | null {
     return null;
   }
   return new Resend(apiKey);
+}
+
+// Helper to get FROM email address
+export function getFromEmail(): string {
+  return FROM_EMAIL;
 }
