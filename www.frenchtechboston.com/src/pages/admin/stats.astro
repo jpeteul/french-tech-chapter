@@ -22,7 +22,7 @@ export const prerender = false;
   <!-- Error State -->
   <div id="error" class="hidden">
     <Card variant="glass">
-      <p class="text-red-400">Failed to load analytics. Please try again.</p>
+      <p class="text-red-600">Failed to load analytics. Please try again.</p>
     </Card>
   </div>
 
@@ -32,26 +32,26 @@ export const prerender = false;
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-white" id="stat-total-members">-</div>
-          <div class="text-sm text-white/60">Total Members</div>
+          <div class="text-3xl font-bold text-gray-900" id="stat-total-members">-</div>
+          <div class="text-sm text-gray-500">Total Members</div>
         </div>
       </Card>
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-emerald-400" id="stat-active-7d">-</div>
-          <div class="text-sm text-white/60">Active (7 days)</div>
+          <div class="text-3xl font-bold text-emerald-600" id="stat-active-7d">-</div>
+          <div class="text-sm text-gray-500">Active (7 days)</div>
         </div>
       </Card>
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-blue-400" id="stat-active-30d">-</div>
-          <div class="text-sm text-white/60">Active (30 days)</div>
+          <div class="text-3xl font-bold text-blue-600" id="stat-active-30d">-</div>
+          <div class="text-sm text-gray-500">Active (30 days)</div>
         </div>
       </Card>
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-amber-400" id="stat-engagement">-</div>
-          <div class="text-sm text-white/60">30-day Engagement</div>
+          <div class="text-3xl font-bold text-amber-600" id="stat-engagement">-</div>
+          <div class="text-sm text-gray-500">30-day Engagement</div>
         </div>
       </Card>
     </div>
@@ -60,26 +60,26 @@ export const prerender = false;
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-purple-400" id="stat-investors">-</div>
-          <div class="text-sm text-white/60">Investors</div>
+          <div class="text-3xl font-bold text-purple-600" id="stat-investors">-</div>
+          <div class="text-sm text-gray-500">Investors</div>
         </div>
       </Card>
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-cyan-400" id="stat-contacts">-</div>
-          <div class="text-sm text-white/60">Total Contacts</div>
+          <div class="text-3xl font-bold text-cyan-600" id="stat-contacts">-</div>
+          <div class="text-sm text-gray-500">Total Contacts</div>
         </div>
       </Card>
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-pink-400" id="stat-intros">-</div>
-          <div class="text-sm text-white/60">Intro Requests</div>
+          <div class="text-3xl font-bold text-pink-600" id="stat-intros">-</div>
+          <div class="text-sm text-gray-500">Intro Requests</div>
         </div>
       </Card>
       <Card variant="glass" hover>
         <div class="text-center">
-          <div class="text-3xl font-bold text-green-400" id="stat-accept-rate">-</div>
-          <div class="text-sm text-white/60">Accept Rate</div>
+          <div class="text-3xl font-bold text-green-600" id="stat-accept-rate">-</div>
+          <div class="text-sm text-gray-500">Accept Rate</div>
         </div>
       </Card>
     </div>
@@ -87,7 +87,7 @@ export const prerender = false;
     <div class="grid lg:grid-cols-2 gap-6 mb-8">
       <!-- Recent Activity -->
       <Card variant="glass" hover>
-        <h2 class="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
         <div id="recent-activity" class="space-y-3">
           <!-- Populated by JS -->
         </div>
@@ -95,7 +95,7 @@ export const prerender = false;
 
       <!-- Most Active Members -->
       <Card variant="glass" hover>
-        <h2 class="text-lg font-semibold text-white mb-4">Most Active Members</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Most Active Members</h2>
         <div id="most-active" class="space-y-3">
           <!-- Populated by JS -->
         </div>
@@ -105,7 +105,7 @@ export const prerender = false;
     <div class="grid lg:grid-cols-2 gap-6">
       <!-- Top Contributors (Investors Added) -->
       <Card variant="glass" hover>
-        <h2 class="text-lg font-semibold text-white mb-4">Top Investor Contributors</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Top Investor Contributors</h2>
         <div id="top-contributors" class="space-y-3">
           <!-- Populated by JS -->
         </div>
@@ -113,7 +113,7 @@ export const prerender = false;
 
       <!-- Top Requesters (Intros Requested) -->
       <Card variant="glass" hover>
-        <h2 class="text-lg font-semibold text-white mb-4">Most Intro Requests</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Most Intro Requests</h2>
         <div id="top-requesters" class="space-y-3">
           <!-- Populated by JS -->
         </div>
@@ -153,15 +153,15 @@ export const prerender = false;
       // Render recent activity
       const recentEl = document.getElementById('recent-activity')!;
       if (data.recentActivity.length === 0) {
-        recentEl.innerHTML = '<p class="text-white/50 text-sm">No recent activity</p>';
+        recentEl.innerHTML = '<p class="text-gray-400 text-sm">No recent activity yet. Activity will appear here once members start logging in.</p>';
       } else {
         recentEl.innerHTML = data.recentActivity.map((m: any) => `
-          <div class="flex justify-between items-center py-2 border-b border-white/10 last:border-0">
+          <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
             <div>
-              <div class="font-medium text-white">${escapeHtml(m.name)}</div>
-              <div class="text-sm text-white/50">${escapeHtml(m.company || '')}</div>
+              <div class="font-medium text-gray-900">${escapeHtml(m.name)}</div>
+              <div class="text-sm text-gray-500">${escapeHtml(m.company || '')}</div>
             </div>
-            <div class="text-sm text-white/40">${formatRelativeTime(m.last_seen_at)}</div>
+            <div class="text-sm text-gray-400">${formatRelativeTime(m.last_seen_at)}</div>
           </div>
         `).join('');
       }
@@ -169,18 +169,18 @@ export const prerender = false;
       // Render most active members
       const activeEl = document.getElementById('most-active')!;
       if (data.mostActiveMembers.length === 0) {
-        activeEl.innerHTML = '<p class="text-white/50 text-sm">No login data yet</p>';
+        activeEl.innerHTML = '<p class="text-gray-400 text-sm">No login data yet. Members will appear here after they log in.</p>';
       } else {
         activeEl.innerHTML = data.mostActiveMembers.map((m: any, i: number) => `
-          <div class="flex justify-between items-center py-2 border-b border-white/10 last:border-0">
+          <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
             <div class="flex items-center gap-3">
-              <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 text-xs flex items-center justify-center font-medium">${i + 1}</span>
+              <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs flex items-center justify-center font-medium">${i + 1}</span>
               <div>
-                <div class="font-medium text-white">${escapeHtml(m.name)}</div>
-                <div class="text-sm text-white/50">${escapeHtml(m.company || '')}</div>
+                <div class="font-medium text-gray-900">${escapeHtml(m.name)}</div>
+                <div class="text-sm text-gray-500">${escapeHtml(m.company || '')}</div>
               </div>
             </div>
-            <div class="text-sm text-blue-400 font-medium">${m.login_count} logins</div>
+            <div class="text-sm text-blue-600 font-medium">${m.login_count} logins</div>
           </div>
         `).join('');
       }
@@ -188,18 +188,18 @@ export const prerender = false;
       // Render top contributors
       const contribEl = document.getElementById('top-contributors')!;
       if (data.topContributors.length === 0) {
-        contribEl.innerHTML = '<p class="text-white/50 text-sm">No contributors yet</p>';
+        contribEl.innerHTML = '<p class="text-gray-400 text-sm">No contributors yet. Members who add investors will appear here.</p>';
       } else {
         contribEl.innerHTML = data.topContributors.map((m: any, i: number) => `
-          <div class="flex justify-between items-center py-2 border-b border-white/10 last:border-0">
+          <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
             <div class="flex items-center gap-3">
-              <span class="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-medium">${i + 1}</span>
+              <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs flex items-center justify-center font-medium">${i + 1}</span>
               <div>
-                <div class="font-medium text-white">${escapeHtml(m.name)}</div>
-                <div class="text-sm text-white/50">${escapeHtml(m.company || '')}</div>
+                <div class="font-medium text-gray-900">${escapeHtml(m.name)}</div>
+                <div class="text-sm text-gray-500">${escapeHtml(m.company || '')}</div>
               </div>
             </div>
-            <div class="text-sm text-purple-400 font-medium">${m.count} investors</div>
+            <div class="text-sm text-purple-600 font-medium">${m.count} investors</div>
           </div>
         `).join('');
       }
@@ -207,18 +207,18 @@ export const prerender = false;
       // Render top requesters
       const reqEl = document.getElementById('top-requesters')!;
       if (data.topRequesters.length === 0) {
-        reqEl.innerHTML = '<p class="text-white/50 text-sm">No intro requests yet</p>';
+        reqEl.innerHTML = '<p class="text-gray-400 text-sm">No intro requests yet. Members who request intros will appear here.</p>';
       } else {
         reqEl.innerHTML = data.topRequesters.map((m: any, i: number) => `
-          <div class="flex justify-between items-center py-2 border-b border-white/10 last:border-0">
+          <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
             <div class="flex items-center gap-3">
-              <span class="w-6 h-6 rounded-full bg-pink-500/20 text-pink-400 text-xs flex items-center justify-center font-medium">${i + 1}</span>
+              <span class="w-6 h-6 rounded-full bg-pink-100 text-pink-600 text-xs flex items-center justify-center font-medium">${i + 1}</span>
               <div>
-                <div class="font-medium text-white">${escapeHtml(m.name)}</div>
-                <div class="text-sm text-white/50">${escapeHtml(m.company || '')}</div>
+                <div class="font-medium text-gray-900">${escapeHtml(m.name)}</div>
+                <div class="text-sm text-gray-500">${escapeHtml(m.company || '')}</div>
               </div>
             </div>
-            <div class="text-sm text-pink-400 font-medium">${m.count} requests</div>
+            <div class="text-sm text-pink-600 font-medium">${m.count} requests</div>
           </div>
         `).join('');
       }

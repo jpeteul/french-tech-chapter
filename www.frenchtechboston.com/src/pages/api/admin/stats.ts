@@ -69,12 +69,12 @@ export const GET: APIRoute = async ({ cookies, request, locals }) => {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Get most active members (by login count)
+    // Get most active members (by login count) - only those with at least 1 login
     const { data: mostActiveMembers } = await supabaseAdmin
       .from('members')
       .select('name, company, login_count, last_seen_at')
       .eq('status', 'active')
-      .not('login_count', 'is', null)
+      .gt('login_count', 0)
       .order('login_count', { ascending: false })
       .limit(10);
 
@@ -84,6 +84,7 @@ export const GET: APIRoute = async ({ cookies, request, locals }) => {
       .select('name, company, last_seen_at')
       .eq('status', 'active')
       .not('last_seen_at', 'is', null)
+      .gt('login_count', 0)
       .order('last_seen_at', { ascending: false })
       .limit(10);
 
