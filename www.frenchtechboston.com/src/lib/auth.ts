@@ -84,6 +84,17 @@ export function setAuthCookies(
 }
 
 export function clearAuthCookies(cookies: AstroCookies) {
+  // Clear legacy cookie names
   cookies.delete('sb-access-token', { path: '/' });
   cookies.delete('sb-refresh-token', { path: '/' });
+
+  // Clear Supabase SSR cookies (sb-<project-ref>-auth-token pattern)
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) {
+    const projectRef = supabaseUrl.split('//')[1]?.split('.')[0] || '';
+    if (projectRef) {
+      cookies.delete(`sb-${projectRef}-auth-token`, { path: '/' });
+      cookies.delete(`sb-${projectRef}-auth-token-code-verifier`, { path: '/' });
+    }
+  }
 }
