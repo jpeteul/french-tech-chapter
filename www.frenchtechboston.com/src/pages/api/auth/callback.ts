@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
       // Look for a member row matching this email (case-insensitive)
       const { data: member } = await supabaseAdmin
         .from('members')
-        .select('id, user_id')
+        .select('id, user_id, login_count')
         .ilike('email', userEmail)
         .single();
 
@@ -63,6 +63,17 @@ export const POST: APIRoute = async ({ request, cookies, locals }) => {
         await supabaseAdmin
           .from('members')
           .update({ user_id: userId })
+          .eq('id', member.id);
+      }
+
+      if (member) {
+        // Update login activity tracking
+        await supabaseAdmin
+          .from('members')
+          .update({
+            last_seen_at: new Date().toISOString(),
+            login_count: (member as any).login_count ? (member as any).login_count + 1 : 1,
+          })
           .eq('id', member.id);
       }
 

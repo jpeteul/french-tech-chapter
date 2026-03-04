@@ -141,6 +141,17 @@ if ('redirect' in authResult) {
         >
           Newsletter
         </a>
+        <a
+          href="/admin/stats"
+          class:list={[
+            'px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300',
+            Astro.url.pathname.startsWith('/admin/stats')
+              ? 'bg-ft-red text-white shadow-lg shadow-ft-red/25'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+          ]}
+        >
+          Stats
+        </a>
       </nav>
 
       <slot />
